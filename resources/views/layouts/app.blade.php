@@ -73,9 +73,6 @@
 
     <!-- Footer yang telah diperbaiki -->
     <footer class="footer-custom">
-        <div class="footer-slogan">
-            Keahlian nya gak AI IoT Robotik Coding. Pilih jadwal pelatihan dan kembangkan keahlian kamu bersama Karir Akademi
-        </div>
         
         <div class="footer-copyright">
             &copy; {{ date('Y') }} Karir Akademi. Seluruh hak cipta dilindungi.
