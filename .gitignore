@@ -4,6 +4,7 @@
 composer.lock
 .htaccess
 public/uploads/
+sertifikat/
 .env
 .env.backup
 .env.production
