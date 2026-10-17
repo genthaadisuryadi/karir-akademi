@@ -1,5 +1,9 @@
 *.log
 .DS_Store
+.gitignore
+composer.lock
+.htaccess
+public/uploads/
 .env
 .env.backup
 .env.production
