@@ -12,7 +12,17 @@
             <dt>Program</dt><dd>{{ $registration->program->title }}</dd>
             <dt>Jadwal</dt><dd>{{ $registration->program->date_label }}@if($registration->program->time_label), {{ $registration->program->time_label }}@endif</dd>
             @if($registration->program->location)<dt>Lokasi</dt><dd>{{ $registration->program->location }}</dd>@endif
-            <dt>{{ $registration->program->isForPublic() ? 'Instansi' : 'Sekolah' }}</dt><dd>{{ $registration->school_name ?: '-' }}@if($registration->class_name) (Kelas {{ $registration->class_name }})@endif</dd>
+            
+            <dt>Target Peserta</dt><dd>{{ $registration->target_peserta }}</dd>
+            
+            @if($registration->target_peserta === 'Siswa SMA/SMK')
+                <dt>Sekolah</dt><dd>{{ $registration->nama_sekolah }} (Kelas {{ $registration->kelas }})</dd>
+            @elseif($registration->target_peserta === 'Guru')
+                <dt>Sekolah</dt><dd>{{ $registration->nama_sekolah }}</dd>
+            @elseif($registration->target_peserta === 'Umum')
+                <dt>Instansi</dt><dd>{{ $registration->instansi }}</dd>
+            @endif
+
             <dt>Email</dt><dd>{{ $registration->email }}</dd>
             <dt>WhatsApp</dt><dd>{{ $registration->phone }}</dd>
         </dl>

@@ -27,6 +27,7 @@ class RegistrationController extends Controller
             return back()->withInput()->withErrors(['email' => 'Maaf, kuota program ini sudah penuh.']);
         }
 
+        // 1. Validasi dasar
         $rules = [
             'name' => ['required', 'string', 'max:120'],
             'email' => [
@@ -37,13 +38,20 @@ class RegistrationController extends Controller
             'city' => ['required', 'string', 'max:100'],
             'position' => ['nullable', 'string', 'max:120'],
             'motivation' => ['nullable', 'string', 'max:1000'],
+            'target_peserta' => ['required', Rule::in(['Siswa SMA/SMK', 'Guru', 'Umum'])],
             'agree' => ['accepted'],
-            // Siswa: nama sekolah + kelas. Guru: nama sekolah. Umum: nama instansi.
-            'school_name' => ['required', 'string', 'max:150'],
         ];
 
-        if ($program->isForStudents()) {
-            $rules['class_name'] = ['required', 'string', 'max:50'];
+        // 2. Validasi dinamis berdasarkan Target Peserta (Poin 3)
+        $target = $request->input('target_peserta');
+        
+        if ($target === 'Siswa SMA/SMK') {
+            $rules['nama_sekolah'] = ['required', 'string', 'max:150'];
+            $rules['kelas'] = ['required', 'string', 'max:50'];
+        } elseif ($target === 'Guru') {
+            $rules['nama_sekolah'] = ['required', 'string', 'max:150'];
+        } elseif ($target === 'Umum') {
+            $rules['instansi'] = ['required', 'string', 'max:150'];
         }
 
         $data = $request->validate($rules, [
@@ -53,12 +61,15 @@ class RegistrationController extends Controller
             'phone.regex' => 'Nomor WhatsApp tidak valid (contoh: 081234567890).',
             'accepted' => 'Anda harus menyetujui pernyataan ini.',
             'max' => ':attribute terlalu panjang.',
+            'target_peserta.in' => 'Pilihan target peserta tidak valid.'
         ], [
             'name' => 'Nama lengkap',
             'email' => 'Email',
             'phone' => 'Nomor WhatsApp',
-            'school_name' => $program->isForPublic() ? 'Nama instansi' : 'Nama sekolah',
-            'class_name' => 'Kelas',
+            'target_peserta' => 'Target Peserta',
+            'nama_sekolah' => 'Nama sekolah',
+            'kelas' => 'Kelas',
+            'instansi' => 'Nama instansi',
             'city' => 'Kota/Kabupaten',
             'position' => 'Mata pelajaran/jabatan',
             'motivation' => 'Motivasi',
@@ -66,7 +77,6 @@ class RegistrationController extends Controller
 
         unset($data['agree']);
 
-        // Nomor WhatsApp disimpan seragam (0812...) karena dipakai sebagai bagian nomor sertifikat.
         $data['phone'] = Registration::normalizePhone($data['phone']);
 
         if (Registration::where('program_id', $program->id)->whereIn('phone', Registration::phoneVariants($data['phone']))->exists()) {
@@ -76,11 +86,10 @@ class RegistrationController extends Controller
         $registration = Registration::create($data + [
             'program_id' => $program->id,
             'code' => $this->generateCode(),
-            'status' => 'registered',
+            'status' => 'registered', // Langsung berstatus 'Mendaftar' (Poin 2)
             'certificate_number' => Registration::makeCertificateNumber($program, $data['phone']),
         ]);
 
-        // Pendaftaran diingat di sesi ini agar tautan grup langsung tampil di halaman kelas.
         Registration::rememberInSession([$registration->id]);
 
         return redirect()->route('registration.success', $registration->code);
