@@ -11,41 +11,41 @@ class CertificateController extends Controller
 {
     public function show(Request $request, string $number)
     {
-        // Cari data pendaftaran beserta relasi program
+        // Cari pendaftaran beserta relasi program
         $registration = Registration::with('program')->where('certificate_number', $number)->first();
 
-        // Jika tidak ditemukan ATAU statusnya bukan 'certificate_issued' (Terbit Sertifikat)
+        // Jika tidak ditemukan atau status bukan 'certificate_issued'
         if (! $registration || ! $registration->isCertificateIssued()) {
             return view('certificate.not-found', ['number' => $number]);
         }
 
         $program = $registration->program;
 
-        // Pastikan template depan dan belakang sudah diunggah oleh admin
+        // Pastikan template sudah diupload admin
         if (! $program->hasCertificateTemplate()) {
-            abort(404, 'Template sertifikat belum lengkap. Silakan hubungi admin.');
+            abort(404, 'Template sertifikat belum lengkap. Hubungi admin.');
         }
 
-        // Poin 9: Generate QR Code yang berisi URL sertifikat
+        // Poin 9: Buat QR Code (berisi URL akses sertifikat) dalam format SVG Base64
         $url = $registration->certificateQrUrl(); 
         $qrcode = base64_encode(QrCode::format('svg')->size(120)->generate($url));
 
-        // Poin 6: Load view PDF dengan data yang dibutuhkan
+        // Poin 6: Load view untuk dicetak jadi PDF
         $pdf = Pdf::loadView('certificate.pdf', [
             'registration' => $registration,
             'program' => $program,
             'qrcode' => $qrcode,
         ]);
 
-        // Atur ukuran kertas ke A4 Landscape
+        // Setting kertas A4 Landscape
         $pdf->setPaper('A4', 'landscape');
 
-        // Jika ada query ?unduh=1 (dari tombol di my-class), maka otomatis Download
+        // Jika ada query ?unduh=1 (dari tombol di Kelas Saya), otomatis unduh file
         if ($request->query('unduh')) {
             return $pdf->download('Sertifikat-' . $registration->certificate_number . '.pdf');
         }
 
-        // Jika diakses langsung dari URL/QR Code, tampilkan di browser (Stream)
+        // Tampilkan di browser
         return $pdf->stream('Sertifikat-' . $registration->certificate_number . '.pdf');
     }
 }

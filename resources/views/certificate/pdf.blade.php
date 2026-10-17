@@ -15,7 +15,6 @@
             overflow: hidden;
         }
 
-        /* Background Template 100% memenuhi kertas A4 */
         .bg-template {
             position: absolute;
             top: 0;
@@ -25,9 +24,7 @@
             z-index: -1;
         }
 
-        /* ============================================================
-           SESUAIKAN ANGKA "top" dan "left" DI BAWAH INI DENGAN DESAIN
-           ============================================================ */
+        /* Koordinat posisi text. Nanti bisa digeser top/left-nya sesuai desain PNG Anda */
         .nama {
             position: absolute;
             top: 45%; 
@@ -67,31 +64,23 @@
     </style>
 </head>
 <body>
-    <!-- Poin 6: HALAMAN 1 (DEPAN) -->
+    <!-- HALAMAN 1 (DEPAN) -->
     <div class="page">
+        <!-- Menggunakan storage_path agar DomPDF bisa baca file di storage privat -->
         <img class="bg-template" src="{{ storage_path('app/' . $program->certificate_front) }}" alt="Template Depan">
         
-        <div class="nomor">
-            No: {{ $registration->certificate_number }}
-        </div>
+        <div class="nomor">No: {{ $registration->certificate_number }}</div>
+        <div class="nama">{{ $registration->name }}</div>
+        <div class="tanggal">Cirebon, {{ \Carbon\Carbon::parse($registration->certificate_issued_at ?? now())->translatedFormat('d F Y') }}</div>
         
-        <div class="nama">
-            {{ $registration->name }}
-        </div>
-
-        <div class="tanggal">
-            Cirebon, {{ \Carbon\Carbon::parse($registration->certificate_issued_at ?? now())->translatedFormat('d F Y') }}
-        </div>
-
         <div class="qrcode">
             <img src="data:image/svg+xml;base64,{!! $qrcode !!}" style="width: 100%;" alt="QR Code">
         </div>
     </div>
 
-    <!-- Poin 6: HALAMAN 2 (BELAKANG STATIS) -->
+    <!-- HALAMAN 2 (BELAKANG STATIS) -->
     <div class="page">
         <img class="bg-template" src="{{ storage_path('app/' . $program->certificate_back) }}" alt="Template Belakang">
-        <!-- Kosong karena desain belakang berisi penilaian/kurikulum statis yang menyatu dengan gambar -->
     </div>
 </body>
 </html>

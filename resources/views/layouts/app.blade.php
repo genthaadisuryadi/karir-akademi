@@ -9,6 +9,47 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <link rel="stylesheet" href="{{ asset('css/rakit.css') }}?v=11">
+    <style>
+        /* Tambahan style untuk merapikan footer sesuai Poin 12 & 13 */
+        .footer-custom {
+            background-color: #1f2937;
+            color: #d1d5db;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .footer-slogan {
+            font-size: 16px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .footer-copyright {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 25px;
+        }
+        .footer-logos-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            margin-top: 15px;
+        }
+        .footer-logos-wrap img {
+            height: 45px;
+            object-fit: contain;
+        }
+        .footer-logo-text {
+            font-weight: 600;
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
     <header class="nav">
@@ -30,11 +71,18 @@
 
     <main>@yield('content')</main>
 
-    <footer class="footer">
-        {{-- Logo: letakkan berkas di public/images/logo-ucic.png dan public/images/logo-rakitai.png.
-             Selama berkas belum ada, nama ditampilkan sebagai teks. --}}
-        <div class="footer-logos">
-            @foreach([['logo-ucic.png', 'UCIC'], ['logo-rakitai.png', 'Rakit AI']] as [$file, $label])
+    <!-- Footer yang telah diperbaiki -->
+    <footer class="footer-custom">
+        <div class="footer-slogan">
+            Keahlian nya gak AI IoT Robotik Coding. Pilih jadwal pelatihan dan kembangkan keahlian kamu bersama Karir Akademi
+        </div>
+        
+        <div class="footer-copyright">
+            &copy; {{ date('Y') }} Karir Akademi. Seluruh hak cipta dilindungi.
+        </div>
+
+        <div class="footer-logos-wrap">
+            @foreach([['logo-ucic.png', 'UCIC'], ['logo.png', 'Rakit AI']] as [$file, $label])
                 @if(file_exists(public_path('images/'.$file)))
                     <img src="{{ asset('images/'.$file) }}" alt="{{ $label }}">
                 @else
@@ -42,7 +90,6 @@
                 @endif
             @endforeach
         </div>
-        <div>&copy; {{ date('Y') }} Karir Akademi by UCIC. Seluruh hak cipta dilindungi.</div>
     </footer>
 </body>
 </html>
