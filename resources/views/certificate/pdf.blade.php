@@ -4,15 +4,29 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Sertifikat {{ $registration->certificate_number }}</title>
     <style>
-        @page { margin: 0px; }
-        body { margin: 0px; padding: 0px; font-family: 'Helvetica', 'Arial', sans-serif; }
+        /* Reset semua margin agar tidak membuat halaman ketiga secara tidak sengaja */
+        @page { 
+            margin: 0px; 
+            size: A4 landscape; /* Tegaskan ukuran A4 Landscape */
+        }
+        body { 
+            margin: 0px; 
+            padding: 0px; 
+            font-family: 'Helvetica', 'Arial', sans-serif; 
+        }
         
         .page {
             width: 100%;
             height: 100%;
             position: relative;
+            /* Penting: Pastikan tidak ada halaman kosong yang terbuat otomatis */
+            overflow: hidden; 
             page-break-after: always;
-            overflow: hidden;
+        }
+
+        /* Hapus page-break di elemen terakhir agar tidak membuat halaman ke-3 */
+        .page:last-child {
+            page-break-after: auto;
         }
 
         .bg-template {
@@ -22,9 +36,11 @@
             width: 100%;
             height: 100%;
             z-index: -1;
+            /* Pastikan gambar ditarik memenuhi kanvas tanpa mengubah rasio terlalu ekstrem */
+            object-fit: cover; 
         }
 
-        /* Koordinat posisi text. Nanti bisa digeser top/left-nya sesuai desain PNG Anda */
+        /* Teks statis dan dinamis */
         .nama {
             position: absolute;
             top: 45%; 
@@ -66,21 +82,23 @@
 <body>
     <!-- HALAMAN 1 (DEPAN) -->
     <div class="page">
-        <!-- Menggunakan storage_path agar DomPDF bisa baca file di storage privat -->
-        <img class="bg-template" src="{{ storage_path('app/' . $program->certificate_front) }}" alt="Template Depan">
+        <!-- Teks alt dihapus agar tidak muncul jika gambar telat dimuat -->
+        <!-- Perhatikan base_path() di bawah ini untuk memastikan path file absolut dan akurat -->
+        <img class="bg-template" src="{{ base_path('storage/app/public/' . $program->certificate_front) }}" alt="">
         
         <div class="nomor">No: {{ $registration->certificate_number }}</div>
         <div class="nama">{{ $registration->name }}</div>
-        <div class="tanggal">Cirebon, {{ \Carbon\Carbon::parse($registration->certificate_issued_at ?? now())->translatedFormat('d F Y') }}</div>
+        <!-- Tanggal sudah diperbaiki menggunakan tanggal hari ini, atau format Indonesia -->
+        <div class="tanggal">Cirebon, {{ \Carbon\Carbon::parse($registration->certificate_issued_at ?? now())->isoFormat('D MMMM Y') }}</div>
         
         <div class="qrcode">
-            <img src="data:image/svg+xml;base64,{!! $qrcode !!}" style="width: 100%;" alt="QR Code">
+            <img src="data:image/svg+xml;base64,{!! $qrcode !!}" style="width: 100%;" alt="">
         </div>
     </div>
 
     <!-- HALAMAN 2 (BELAKANG STATIS) -->
     <div class="page">
-        <img class="bg-template" src="{{ storage_path('app/' . $program->certificate_back) }}" alt="Template Belakang">
+        <img class="bg-template" src="{{ base_path('storage/app/public/' . $program->certificate_back) }}" alt="">
     </div>
 </body>
 </html>
