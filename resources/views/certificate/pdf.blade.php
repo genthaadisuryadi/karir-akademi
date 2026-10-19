@@ -78,12 +78,11 @@
 <body>
     <!-- HALAMAN 1 (DEPAN) -->
     <div class="page">
-        <!-- Path gambar sudah dikoreksi ke storage_path() -->
-        <img class="bg-template" src="{{ storage_path('app/' . $program->certificate_front) }}" alt="">
+        <!-- Menggunakan variabel Base64 dari Controller -->
+        <img class="bg-template" src="{{ $frontTemplate }}" alt="">
         
         <div class="nomor">No: {{ $registration->certificate_number }}</div>
         <div class="nama">{{ $registration->name }}</div>
-        <!-- Menampilkan tanggal menggunakan library Carbon -->
         <div class="tanggal">Cirebon, {{ \Carbon\Carbon::parse($registration->certificate_issued_at ?? now())->isoFormat('D MMMM Y') }}</div>
         
         <div class="qrcode">
@@ -93,8 +92,8 @@
 
     <!-- HALAMAN 2 (BELAKANG STATIS) -->
     <div class="page">
-        <!-- Path gambar sudah dikoreksi ke storage_path() -->
-        <img class="bg-template" src="{{ storage_path('app/' . $program->certificate_back) }}" alt="">
+        <!-- Menggunakan variabel Base64 dari Controller -->
+        <img class="bg-template" src="{{ $backTemplate }}" alt="">
     </div>
 </body>
 </html>

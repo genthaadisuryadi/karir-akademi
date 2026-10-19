@@ -5,47 +5,56 @@ namespace App\Http\Controllers;
 use App\Models\Registration;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class CertificateController extends Controller
 {
     public function show(Request $request, string $number)
     {
-        // Cari pendaftaran beserta relasi program
         $registration = Registration::with('program')->where('certificate_number', $number)->first();
 
-        // Jika tidak ditemukan atau status bukan 'certificate_issued'
         if (! $registration || ! $registration->isCertificateIssued()) {
             return view('certificate.not-found', ['number' => $number]);
         }
 
         $program = $registration->program;
 
-        // Pastikan template sudah diupload admin
         if (! $program->hasCertificateTemplate()) {
             abort(404, 'Template sertifikat belum lengkap. Hubungi admin.');
         }
 
-        // Poin 9: Buat QR Code (berisi URL akses sertifikat) dalam format SVG Base64
         $url = $registration->certificateQrUrl(); 
         $qrcode = base64_encode(QrCode::format('svg')->size(120)->generate($url));
 
-        // Poin 6: Load view untuk dicetak jadi PDF
+        // METODE BARU: Konversi template ke Base64 agar DOMPDF tidak perlu membaca file path lagi
+        $frontBase64 = '';
+        $backBase64 = '';
+
+        if (Storage::disk('local')->exists($program->certificate_front)) {
+            $frontContent = Storage::disk('local')->get($program->certificate_front);
+            $frontBase64 = 'data:image/png;base64,' . base64_encode($frontContent);
+        }
+
+        if (Storage::disk('local')->exists($program->certificate_back)) {
+            $backContent = Storage::disk('local')->get($program->certificate_back);
+            $backBase64 = 'data:image/png;base64,' . base64_encode($backContent);
+        }
+
         $pdf = Pdf::loadView('certificate.pdf', [
             'registration' => $registration,
             'program' => $program,
             'qrcode' => $qrcode,
+            'frontTemplate' => $frontBase64,
+            'backTemplate' => $backBase64,
         ]);
 
-        // Setting kertas A4 Landscape
         $pdf->setPaper('A4', 'landscape');
 
-        // Jika ada query ?unduh=1 (dari tombol di Kelas Saya), otomatis unduh file
         if ($request->query('unduh')) {
             return $pdf->download('Sertifikat-' . $registration->certificate_number . '.pdf');
         }
 
-        // Tampilkan di browser
         return $pdf->stream('Sertifikat-' . $registration->certificate_number . '.pdf');
     }
 }
