@@ -64,8 +64,8 @@
         .tanggal {
             position: absolute;
             bottom: 27%; 
-            right: 14%;  
-            width: 150px; 
+            right: 9%;  
+            width: 250px; 
             text-align: center;
             font-size: 16px;
             color: #222;
