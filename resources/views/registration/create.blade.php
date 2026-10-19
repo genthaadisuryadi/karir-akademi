@@ -35,6 +35,9 @@
         <form method="POST" action="{{ route('registration.store', $program) }}" novalidate>
             @csrf
 
+            <!-- PENAMBAHAN WAJIB: Input target peserta yang dikirim ke Controller -->
+            <input type="hidden" name="target_peserta" value="{{ $program->audienceLabel() }}">
+
             <div class="sec-title">Data Peserta</div>
 
             <div class="field @error('name') has-error @enderror">
@@ -66,18 +69,28 @@
 
             <div class="sec-title" style="margin-top:28px">{{ $program->isForPublic() ? 'Data Instansi' : 'Data Sekolah' }}</div>
 
-            <div class="field @error('school_name') has-error @enderror">
-                <label for="school_name">{{ $program->isForPublic() ? 'Nama Instansi' : 'Nama Sekolah' }} <span class="req">*</span></label>
-                <input id="school_name" name="school_name" type="text" value="{{ old('school_name') }}" placeholder="{{ $program->isForPublic() ? 'Contoh: UCIC atau nama instansi' : 'Contoh: SMK Negeri 1 Cirebon' }}" required>
-                @error('school_name')<div class="err">{{ $message }}</div>@enderror
-            </div>
+            <!-- PERUBAHAN: name="school_name" diganti menjadi name="nama_sekolah" atau name="instansi" -->
+            @if($program->isForPublic())
+                <div class="field @error('instansi') has-error @enderror">
+                    <label for="instansi">Nama Instansi <span class="req">*</span></label>
+                    <input id="instansi" name="instansi" type="text" value="{{ old('instansi') }}" placeholder="Contoh: UCIC atau nama instansi" required>
+                    @error('instansi')<div class="err">{{ $message }}</div>@enderror
+                </div>
+            @else
+                <div class="field @error('nama_sekolah') has-error @enderror">
+                    <label for="nama_sekolah">Nama Sekolah <span class="req">*</span></label>
+                    <input id="nama_sekolah" name="nama_sekolah" type="text" value="{{ old('nama_sekolah') }}" placeholder="Contoh: SMK Negeri 1 Cirebon" required>
+                    @error('nama_sekolah')<div class="err">{{ $message }}</div>@enderror
+                </div>
+            @endif
 
             @if($program->isForStudents())
             <div class="grid2">
-                <div class="field @error('class_name') has-error @enderror">
-                    <label for="class_name">Kelas <span class="req">*</span></label>
-                    <input id="class_name" name="class_name" type="text" value="{{ old('class_name') }}" placeholder="Contoh: XI RPL 1" required>
-                    @error('class_name')<div class="err">{{ $message }}</div>@enderror
+                <!-- PERUBAHAN: name="class_name" diganti name="kelas", dan placeholder lebih fleksibel -->
+                <div class="field @error('kelas') has-error @enderror">
+                    <label for="kelas">Kelas <span class="req">*</span></label>
+                    <input id="kelas" name="kelas" type="text" value="{{ old('kelas') }}" placeholder="Bebas (Contoh: XII, 12, atau 12 IPA 3)" required>
+                    @error('kelas')<div class="err">{{ $message }}</div>@enderror
                 </div>
                 <div class="field @error('city') has-error @enderror">
                     <label for="city">Kota/Kabupaten <span class="req">*</span></label>
