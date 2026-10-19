@@ -4,10 +4,10 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Sertifikat {{ $registration->certificate_number }}</title>
     <style>
-        /* Reset semua margin agar tidak membuat halaman ketiga secara tidak sengaja */
+        /* Mengamankan ukuran A4 Landscape dan menghilangkan margin */
         @page { 
             margin: 0px; 
-            size: A4 landscape; /* Tegaskan ukuran A4 Landscape */
+            size: A4 landscape;
         }
         body { 
             margin: 0px; 
@@ -19,12 +19,10 @@
             width: 100%;
             height: 100%;
             position: relative;
-            /* Penting: Pastikan tidak ada halaman kosong yang terbuat otomatis */
             overflow: hidden; 
             page-break-after: always;
         }
 
-        /* Hapus page-break di elemen terakhir agar tidak membuat halaman ke-3 */
         .page:last-child {
             page-break-after: auto;
         }
@@ -36,11 +34,9 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            /* Pastikan gambar ditarik memenuhi kanvas tanpa mengubah rasio terlalu ekstrem */
             object-fit: cover; 
         }
 
-        /* Teks statis dan dinamis */
         .nama {
             position: absolute;
             top: 45%; 
@@ -82,13 +78,12 @@
 <body>
     <!-- HALAMAN 1 (DEPAN) -->
     <div class="page">
-        <!-- Teks alt dihapus agar tidak muncul jika gambar telat dimuat -->
-        <!-- Perhatikan base_path() di bawah ini untuk memastikan path file absolut dan akurat -->
-        <img class="bg-template" src="{{ base_path('storage/app/public/' . $program->certificate_front) }}" alt="">
+        <!-- Path gambar sudah dikoreksi ke storage_path() -->
+        <img class="bg-template" src="{{ storage_path('app/' . $program->certificate_front) }}" alt="">
         
         <div class="nomor">No: {{ $registration->certificate_number }}</div>
         <div class="nama">{{ $registration->name }}</div>
-        <!-- Tanggal sudah diperbaiki menggunakan tanggal hari ini, atau format Indonesia -->
+        <!-- Menampilkan tanggal menggunakan library Carbon -->
         <div class="tanggal">Cirebon, {{ \Carbon\Carbon::parse($registration->certificate_issued_at ?? now())->isoFormat('D MMMM Y') }}</div>
         
         <div class="qrcode">
@@ -98,7 +93,8 @@
 
     <!-- HALAMAN 2 (BELAKANG STATIS) -->
     <div class="page">
-        <img class="bg-template" src="{{ base_path('storage/app/public/' . $program->certificate_back) }}" alt="">
+        <!-- Path gambar sudah dikoreksi ke storage_path() -->
+        <img class="bg-template" src="{{ storage_path('app/' . $program->certificate_back) }}" alt="">
     </div>
 </body>
 </html>
