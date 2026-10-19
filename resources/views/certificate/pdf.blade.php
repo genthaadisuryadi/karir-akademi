@@ -37,6 +37,18 @@
             object-fit: cover; 
         }
 
+        /* Teks Nomor dipindah tepat di bawah "Nomor: UCIC..." */
+        .nomor {
+            position: absolute;
+            top: 24%; 
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            color: #444;
+        }
+
+        /* Teks Nama dipertahankan di tengah area kosong */
         .nama {
             position: absolute;
             top: 45%; 
@@ -48,39 +60,34 @@
             color: #111;
         }
 
-        .nomor {
-            position: absolute;
-            top: 36%;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 16px;
-            color: #444;
-        }
-
+        /* Teks Tanggal dipindah ke kanan bawah, di atas QR Code */
         .tanggal {
             position: absolute;
-            bottom: 22%;
-            left: 10%;
+            bottom: 31%; 
+            right: 14%;  
+            width: 150px; 
+            text-align: center;
             font-size: 16px;
             color: #222;
         }
 
+        /* QR Code di kanan bawah, sejajar dengan teks Tanggal */
         .qrcode {
             position: absolute;
-            bottom: 15%;
-            right: 15%;
-            width: 120px;
-            height: 120px;
+            bottom: 12%; 
+            right: 14%;  
+            width: 130px;
+            height: 130px;
         }
     </style>
 </head>
 <body>
     <!-- HALAMAN 1 (DEPAN) -->
     <div class="page">
-        <!-- Menggunakan variabel Base64 dari Controller -->
+        <!-- Menggunakan variabel Base64 dari Controller agar terhindar dari Error X -->
         <img class="bg-template" src="{{ $frontTemplate }}" alt="">
         
+        <!-- Teks Dinamis -->
         <div class="nomor">No: {{ $registration->certificate_number }}</div>
         <div class="nama">{{ $registration->name }}</div>
         <div class="tanggal">Cirebon, {{ \Carbon\Carbon::parse($registration->certificate_issued_at ?? now())->isoFormat('D MMMM Y') }}</div>
@@ -92,7 +99,6 @@
 
     <!-- HALAMAN 2 (BELAKANG STATIS) -->
     <div class="page">
-        <!-- Menggunakan variabel Base64 dari Controller -->
         <img class="bg-template" src="{{ $backTemplate }}" alt="">
     </div>
 </body>
