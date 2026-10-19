@@ -37,10 +37,10 @@
             object-fit: cover; 
         }
 
-        /* Teks Nomor dipindah tepat di bawah "Nomor: UCIC..." */
+        /* Teks Nomor dinaikkan ke atas agar lebih dekat dengan tulisan SERTIFIKAT */
         .nomor {
             position: absolute;
-            top: 24%; 
+            top: 21%; 
             left: 0;
             width: 100%;
             text-align: center;
@@ -48,10 +48,10 @@
             color: #444;
         }
 
-        /* Teks Nama dipertahankan di tengah area kosong */
+        /* Teks Nama dinaikkan ke atas agar pas berada di atas garis */
         .nama {
             position: absolute;
-            top: 45%; 
+            top: 41%; 
             left: 0;
             width: 100%;
             text-align: center;
@@ -60,10 +60,10 @@
             color: #111;
         }
 
-        /* Teks Tanggal dipindah ke kanan bawah, di atas QR Code */
+        /* Teks Tanggal diturunkan sedikit menyesuaikan posisi QR Code yang baru */
         .tanggal {
             position: absolute;
-            bottom: 31%; 
+            bottom: 27%; 
             right: 14%;  
             width: 150px; 
             text-align: center;
@@ -71,10 +71,10 @@
             color: #222;
         }
 
-        /* QR Code di kanan bawah, sejajar dengan teks Tanggal */
+        /* QR Code diturunkan posisinya mendekati sudut bawah kertas */
         .qrcode {
             position: absolute;
-            bottom: 12%; 
+            bottom: 8%; 
             right: 14%;  
             width: 130px;
             height: 130px;
