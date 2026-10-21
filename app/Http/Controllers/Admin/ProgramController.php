@@ -35,6 +35,10 @@ class ProgramController extends Controller
         $data['poster'] = $this->storePoster($request, null);
         $data['certificate_front'] = $this->storeTemplate($request, 'certificate_front', null);
         $data['certificate_back'] = $this->storeTemplate($request, 'certificate_back', null);
+        
+        // Simpan template khusus pemateri
+        $data['instructor_certificate_front'] = $this->storeTemplate($request, 'instructor_certificate_front', null);
+        $data['instructor_certificate_back'] = $this->storeTemplate($request, 'instructor_certificate_back', null);
 
         Program::create($data);
 
@@ -54,6 +58,10 @@ class ProgramController extends Controller
         $data['poster'] = $this->storePoster($request, $program->poster);
         $data['certificate_front'] = $this->storeTemplate($request, 'certificate_front', $program->certificate_front);
         $data['certificate_back'] = $this->storeTemplate($request, 'certificate_back', $program->certificate_back);
+        
+        // Simpan template khusus pemateri
+        $data['instructor_certificate_front'] = $this->storeTemplate($request, 'instructor_certificate_front', $program->instructor_certificate_front);
+        $data['instructor_certificate_back'] = $this->storeTemplate($request, 'instructor_certificate_back', $program->instructor_certificate_back);
 
         $program->update($data);
 
@@ -71,6 +79,8 @@ class ProgramController extends Controller
         $this->deletePoster($program->poster);
         $this->deleteTemplate($program->certificate_front);
         $this->deleteTemplate($program->certificate_back);
+        $this->deleteTemplate($program->instructor_certificate_front);
+        $this->deleteTemplate($program->instructor_certificate_back);
         $program->delete();
 
         return redirect()->route('admin.kelas.index')->with('success', 'Kelas berhasil dihapus.');
@@ -97,6 +107,14 @@ class ProgramController extends Controller
             'max:'.$template['max_kb'],
             'dimensions:min_width='.$template['min_width'].',min_height='.$template['min_height'].',max_width=3600,max_height=2600',
         ];
+        
+        // Aturan untuk template pemateri (opsional)
+        $instructorTemplateRules = fn () => [
+            'nullable',
+            'file', 'mimes:png', 'mimetypes:image/png',
+            'max:'.$template['max_kb'],
+            'dimensions:min_width='.$template['min_width'].',min_height='.$template['min_height'].',max_width=3600,max_height=2600',
+        ];
 
         $data = $request->validate([
             'title' => ['required', 'string', 'max:200'],
@@ -110,6 +128,12 @@ class ProgramController extends Controller
             ],
             'certificate_front' => $templateRules($program?->certificate_front),
             'certificate_back' => $templateRules($program?->certificate_back),
+            
+            // Validasi field pemateri
+            'instructor_certificate_front' => $instructorTemplateRules(),
+            'instructor_certificate_back' => $instructorTemplateRules(),
+            'instructor_phone' => ['nullable', 'regex:/^(\+62|62|0)8[0-9]{7,13}$/'],
+
             'price_label' => ['nullable', 'string', 'max:30'],
             'jp' => ['required', 'integer', 'min:0', 'max:99'],
             'date_label' => ['required', 'string', 'max:150'],
@@ -136,8 +160,9 @@ class ProgramController extends Controller
             'certificate_back.mimes' => 'Template belakang harus berformat PNG.',
             'certificate_front.mimetypes' => 'Template depan harus berformat PNG.',
             'certificate_back.mimetypes' => 'Template belakang harus berformat PNG.',
-            'certificate_front.max' => 'Ukuran template depan maksimal 8 MB.',
-            'certificate_back.max' => 'Ukuran template belakang maksimal 8 MB.',
+            'instructor_certificate_front.mimes' => 'Template pemateri depan harus berformat PNG.',
+            'instructor_certificate_back.mimes' => 'Template pemateri belakang harus berformat PNG.',
+            'instructor_phone.regex' => 'Nomor WhatsApp Pemateri tidak valid.',
             'dimensions' => ':attribute harus berukuran minimal 1000 x 700 piksel dan maksimal 3600 x 2600 piksel.',
             'in' => 'Pilihan :attribute tidak valid.',
             'url' => ':attribute harus berupa URL yang valid.',
@@ -149,6 +174,9 @@ class ProgramController extends Controller
             'certificate_prefix' => 'Prefix sertifikat',
             'certificate_front' => 'Template sertifikat depan',
             'certificate_back' => 'Template sertifikat belakang',
+            'instructor_certificate_front' => 'Template pemateri (Depan)',
+            'instructor_certificate_back' => 'Template pemateri (Belakang)',
+            'instructor_phone' => 'Nomor WhatsApp Pemateri',
             'price_label' => 'Label harga',
             'jp' => 'Jam pelajaran (JP)',
             'date_label' => 'Tanggal',
@@ -163,7 +191,13 @@ class ProgramController extends Controller
             'poster' => 'Poster',
         ]);
 
-        unset($data['poster'], $data['certificate_front'], $data['certificate_back']);
+        unset(
+            $data['poster'], 
+            $data['certificate_front'], 
+            $data['certificate_back'],
+            $data['instructor_certificate_front'],
+            $data['instructor_certificate_back']
+        );
 
         $data['short_title'] = ($data['short_title'] ?? null) ?: $data['title'];
         $data['price_label'] = ($data['price_label'] ?? null) ?: 'GRATIS';

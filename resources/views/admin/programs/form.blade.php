@@ -106,7 +106,7 @@
 
             <div class="f full @error('description') has-error @enderror">
                 <label for="description">Deskripsi Kelas <span class="muted small"></span></label>
-                <textarea class="input" id="description" name="description" rows="9" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px" placeholder="Contoh:&#10;Transformasi peran guru menjadi **inovator teknologi**.&#10;&#10;## Materi&#10;- Dasar AI&#10;- Praktik IoT">{{ old('description', $program->description) }}</textarea>
+                <textarea class="input" id="description" name="description" rows="9" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px" placeholder="Contoh:&#10;Transformasi peran guru menjadi **inovator teknologi**.&#10;&#10;## Materi&#10;Dasar AI&#10;Praktik IoT">{{ old('description', $program->description) }}</textarea>
                 <div class="hint">Mendukung Markdown: <code>## Judul</code>, <code>**tebal**</code>, <code>*miring*</code>, daftar (<code>- item</code> / <code>1. item</code>), <code>[teks](https://...)</code>. Tag HTML dihapus otomatis. Tampil di bawah poster pada halaman detail kelas.</div>
                 @error('description')<div class="ferr">{{ $message }}</div>@enderror
             </div>
@@ -119,10 +119,17 @@
             </div>
 
             <div class="f full @error('instructor') has-error @enderror">
-                <label for="instructor">Pengajar</label>
+                <label for="instructor">Pengajar (Pemateri)</label>
                 <input class="input" id="instructor" name="instructor" value="{{ old('instructor', $program->instructor) }}" placeholder="Nama pengajar (pisahkan dengan koma jika lebih dari satu)">
-                <div class="hint">Tampil di halaman detail kelas.</div>
+                <div class="hint">Tampil di halaman detail kelas, dan juga menjadi nama yang dicetak di Sertifikat Pemateri.</div>
                 @error('instructor')<div class="ferr">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="f full @error('instructor_phone') has-error @enderror">
+                <label for="instructor_phone">Nomor WhatsApp Pemateri <span class="muted small">(Rahasia)</span></label>
+                <input class="input" id="instructor_phone" type="tel" name="instructor_phone" value="{{ old('instructor_phone', $program->instructor_phone) }}" placeholder="081234567890">
+                <div class="hint">Opsional. Digunakan untuk membuat URL Sertifikat Pemateri. Nomor ini <b>TIDAK</b> akan ditampilkan ke publik.</div>
+                @error('instructor_phone')<div class="ferr">{{ $message }}</div>@enderror
             </div>
 
             <div class="f full @error('whatsapp_group_link') has-error @enderror">
@@ -141,16 +148,37 @@
                 @endif
                 @error('poster')<div class="ferr">{{ $message }}</div>@enderror
             </div>
-
+            
+            <!-- SECTION: SERTIFIKAT PESERTA -->
             @foreach(['certificate_front' => 'Depan', 'certificate_back' => 'Belakang'] as $field => $side)
                 <div class="f @error($field) has-error @enderror">
-                    <label for="{{ $field }}">Template Sertifikat {{ $side }} (PNG) @unless(filled($program->{$field}))<span class="req">*</span>@endunless</label>
+                    <label for="{{ $field }}">Template Sertifikat PESERTA {{ $side }} (PNG) @unless(filled($program->{$field}))<span class="req">*</span>@endunless</label>
                     <input class="input" id="{{ $field }}" type="file" name="{{ $field }}" accept="image/png" @required(! filled($program->{$field}))>
                     <div class="hint">
                         @if($field === 'certificate_front')
                             PNG halaman depan. Nama, nomor, tanggal, dan QR Code ditempatkan otomatis di posisi tetap.
                         @else
                             PNG halaman belakang (statis, tidak ada data peserta).
+                        @endif
+                        Min. 1000 x 700 px, maks. 3600 x 2600 px, 8 MB.
+                    </div>
+                    @if(filled($program->{$field}))
+                        <div class="muted small">Template sudah diunggah. Pilih berkas baru hanya jika ingin menggantinya.</div>
+                    @endif
+                    @error($field)<div class="ferr">{{ $message }}</div>@enderror
+                </div>
+            @endforeach
+
+            <!-- SECTION: SERTIFIKAT PEMATERI -->
+            @foreach(['instructor_certificate_front' => 'Depan', 'instructor_certificate_back' => 'Belakang'] as $field => $side)
+                <div class="f @error($field) has-error @enderror">
+                    <label for="{{ $field }}">Template Sertifikat PEMATERI {{ $side }} (PNG) <span class="muted small">(Opsional)</span></label>
+                    <input class="input" id="{{ $field }}" type="file" name="{{ $field }}" accept="image/png">
+                    <div class="hint">
+                        @if($field === 'instructor_certificate_front')
+                            PNG halaman depan untuk Pemateri.
+                        @else
+                            PNG halaman belakang untuk Pemateri.
                         @endif
                         Min. 1000 x 700 px, maks. 3600 x 2600 px, 8 MB.
                     </div>

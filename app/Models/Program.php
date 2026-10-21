@@ -102,10 +102,16 @@ class Program extends Model
         return self::AUDIENCES[$this->audience] ?? (string) $this->audience;
     }
 
-    /** Template sertifikat (PNG) tersedia bila kedua sisi sudah diunggah. */
+    /** Template sertifikat peserta (PNG) tersedia bila kedua sisi sudah diunggah. */
     public function hasCertificateTemplate(): bool
     {
         return filled($this->certificate_front) && filled($this->certificate_back);
+    }
+
+    /** Template sertifikat khusus pemateri (PNG) tersedia bila kedua sisi sudah diunggah. */
+    public function hasInstructorCertificateTemplate(): bool
+    {
+        return filled($this->instructor_certificate_front) && filled($this->instructor_certificate_back);
     }
 
     public function isFull(): bool
