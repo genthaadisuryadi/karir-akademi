@@ -116,6 +116,21 @@ class RegistrationController extends Controller
     {
         ['type' => $type, 'value' => $value] = $request->identifier();
 
+        // TAMBAHAN: Cek apakah input adalah Nomor WA Pemateri
+        if ($type === 'phone') {
+            // Gunakan salah satu variasi nomor WA (misal dari 08... ke 628...)
+            $phoneVariants = Registration::phoneVariants($value);
+            
+            // Cek ke tabel programs
+            $programAsInstructor = Program::whereIn('instructor_phone', $phoneVariants)->first();
+            
+            if ($programAsInstructor) {
+                // Jika ketemu, langsung arahkan (redirect) ke URL sertifikat pemateri
+                return redirect('/sertifikat/' . $programAsInstructor->certificate_prefix . '-' . $programAsInstructor->instructor_phone);
+            }
+        }
+
+        // LOGIKA LAMA: Cari data peserta
         $query = Registration::with('program');
 
         match ($type) {
