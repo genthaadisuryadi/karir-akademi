@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('programs', function (Blueprint $table) {
             // Asumsi field nama pemateri di database Anda bernama 'pengajar'
-            $table->string('instructor_phone')->nullable()->after('pengajar');
+            $table->string('instructor_phone')->nullable()->after('instructor');
             $table->string('instructor_certificate_front')->nullable();
             $table->string('instructor_certificate_back')->nullable();
         });
