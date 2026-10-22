@@ -42,7 +42,7 @@ class RegistrationController extends Controller
             'agree' => ['accepted'],
         ];
 
-        // 2. Validasi dinamis berdasarkan Target Peserta (Poin 3)
+        // 2. Validasi dinamis berdasarkan Target Peserta
         $target = $request->input('target_peserta');
         
         if ($target === 'Siswa SMA/SMK') {
@@ -77,6 +77,12 @@ class RegistrationController extends Controller
 
         unset($data['agree']);
 
+        // Mapping variabel input ke struktur kolom database
+        $data['school_name'] = $data['nama_sekolah'] ?? $data['instansi'] ?? null;
+        $data['class_name'] = $data['kelas'] ?? null;
+
+        unset($data['nama_sekolah'], $data['instansi'], $data['kelas'], $data['target_peserta']);
+
         $data['phone'] = Registration::normalizePhone($data['phone']);
 
         if (Registration::where('program_id', $program->id)->whereIn('phone', Registration::phoneVariants($data['phone']))->exists()) {
@@ -86,7 +92,7 @@ class RegistrationController extends Controller
         $registration = Registration::create($data + [
             'program_id' => $program->id,
             'code' => $this->generateCode(),
-            'status' => 'registered', // Langsung berstatus 'Mendaftar' (Poin 2)
+            'status' => 'registered', // Langsung berstatus 'Mendaftar'
             'certificate_number' => Registration::makeCertificateNumber($program, $data['phone']),
         ]);
 
@@ -116,21 +122,18 @@ class RegistrationController extends Controller
     {
         ['type' => $type, 'value' => $value] = $request->identifier();
 
-        // TAMBAHAN: Cek apakah input adalah Nomor WA Pemateri
+        // Cek apakah input adalah Nomor WA Pemateri
         if ($type === 'phone') {
-            // Gunakan salah satu variasi nomor WA (misal dari 08... ke 628...)
             $phoneVariants = Registration::phoneVariants($value);
             
-            // Cek ke tabel programs
             $programAsInstructor = Program::whereIn('instructor_phone', $phoneVariants)->first();
             
             if ($programAsInstructor) {
-                // Jika ketemu, langsung arahkan (redirect) ke URL sertifikat pemateri
                 return redirect('/sertifikat/' . $programAsInstructor->certificate_prefix . '-' . $programAsInstructor->instructor_phone);
             }
         }
 
-        // LOGIKA LAMA: Cari data peserta
+        // Jika bukan pemateri, cari data peserta
         $query = Registration::with('program');
 
         match ($type) {
@@ -142,16 +145,13 @@ class RegistrationController extends Controller
         $matches = $query->get();
 
         if ($matches->isEmpty()) {
-            // Pesan sengaja generik agar tidak membocorkan jenis data yang salah.
             return back()
                 ->withInput($request->only('q'))
                 ->with('error', 'Data pendaftaran tidak ditemukan. Periksa kembali email, nomor HP, atau nomor registrasi Anda.');
         }
 
-        // Pendaftaran yang ditemukan membuka link grup WhatsApp di browser ini.
         Registration::rememberInSession($matches->pluck('id'));
 
-        // Tautan bertanda tangan (signed URL) berlaku 30 menit dan tidak bisa dimanipulasi.
         return redirect(URL::temporarySignedRoute(
             'registration.my-class',
             now()->addMinutes(30),
