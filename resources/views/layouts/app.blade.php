@@ -12,12 +12,12 @@
     <style>
         /* Tambahan style untuk merapikan footer */
         .footer-custom {
-            background-color: #ffffff; /* Ubah background jadi putih */
-            color: #374151; /* Ubah warna teks jadi gelap */
+            background-color: transparent; /* Dibuat transparan agar tidak memotong bentuk biru */
+            color: #374151; /* Teks tetap berwarna gelap */
             padding: 40px 20px;
             text-align: center;
-            margin-top: 50px;
-            border-top: 1px solid #e5e7eb; /* Garis batas atas tipis agar elegan */
+            position: relative;
+            z-index: 10; /* Memastikan teks dan logo tetap melayang di atas elemen biru */
         }
         .footer-slogan {
             font-size: 16px;
