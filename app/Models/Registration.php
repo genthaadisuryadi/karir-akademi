@@ -7,7 +7,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Registration extends Model
 {
-    protected $guarded = [];
+    // Mengganti $guarded dengan $fillable agar lebih aman dan spesifik
+    protected $fillable = [
+        'program_id',
+        'code',
+        'name',
+        'email',
+        'phone',
+        'school_name', // Kolom sekolah/instansi
+        'class_name',  // Kolom kelas
+        'city',
+        'position',
+        'motivation',
+        'status',
+        'certificate_number',
+        'certificate_issued_at',
+    ];
 
     protected function casts(): array
     {
