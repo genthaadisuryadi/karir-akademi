@@ -10,13 +10,14 @@
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <link rel="stylesheet" href="{{ asset('css/rakit.css') }}?v=11">
     <style>
-        /* Tambahan style untuk merapikan footer sesuai Poin 12 & 13 */
+        /* Tambahan style untuk merapikan footer */
         .footer-custom {
-            background-color: #1f2937;
-            color: #d1d5db;
+            background-color: #ffffff; /* Ubah background jadi putih */
+            color: #374151; /* Ubah warna teks jadi gelap */
             padding: 40px 20px;
             text-align: center;
             margin-top: 50px;
+            border-top: 1px solid #e5e7eb; /* Garis batas atas tipis agar elegan */
         }
         .footer-slogan {
             font-size: 16px;
@@ -28,24 +29,29 @@
         }
         .footer-copyright {
             font-size: 14px;
-            color: #9ca3af;
+            color: #6b7280; /* Teks abu-abu agar tidak terlalu pekat */
             margin-bottom: 25px;
         }
         .footer-logos-wrap {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 25px;
+            gap: 35px; /* Jarak antar logo diperlebar sedikit */
             margin-top: 15px;
         }
         .footer-logos-wrap img {
-            height: 45px;
+            height: 45px; /* Tinggi standar untuk logo UCIC */
+            width: auto;
             object-fit: contain;
+        }
+        /* Trik khusus agar logo Rakit AI proporsional dan tidak kebesaran */
+        .footer-logos-wrap img[alt="Rakit AI"] {
+            height: 28px; 
         }
         .footer-logo-text {
             font-weight: 600;
-            color: #fff;
-            background: rgba(255,255,255,0.1);
+            color: #374151;
+            background: #f3f4f6;
             padding: 8px 16px;
             border-radius: 4px;
         }
