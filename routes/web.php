@@ -52,6 +52,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
 
     // Kelola pendaftar
     Route::get('pendaftar/export', [AdminRegistrationController::class, 'export'])->name('pendaftar.export');
+    Route::post('pendaftar/bulk-status', [AdminRegistrationController::class, 'bulkUpdateStatus'])->name('pendaftar.bulk-status'); // <-- FITUR BARU: Aksi Massal
     Route::get('pendaftar', [AdminRegistrationController::class, 'index'])->name('pendaftar.index');
     Route::get('pendaftar/{id}', [AdminRegistrationController::class, 'show'])->whereNumber('id')->name('pendaftar.show');
     Route::patch('pendaftar/{id}/status', [AdminRegistrationController::class, 'updateStatus'])->whereNumber('id')->name('pendaftar.status');
