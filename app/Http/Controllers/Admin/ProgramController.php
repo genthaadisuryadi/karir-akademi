@@ -67,6 +67,18 @@ class ProgramController extends Controller
 
         return redirect()->route('admin.kelas.index')->with('success', 'Kelas berhasil diperbarui.');
     }
+    
+    /** FITUR BARU: Mengaktifkan/Menonaktifkan Kelas dengan cepat */
+    public function toggleStatus(int $id)
+    {
+        $program = Program::findOrFail($id);
+        
+        // Membalikkan status saat ini (Aktif jadi Nonaktif, Nonaktif jadi Aktif)
+        $program->update(['is_active' => !$program->is_active]);
+
+        $statusText = $program->is_active ? 'diaktifkan' : 'dinonaktifkan (diarsipkan)';
+        return back()->with('success', "Kelas berhasil {$statusText}.");
+    }
 
     public function destroy(int $id)
     {

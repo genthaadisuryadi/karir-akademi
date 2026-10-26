@@ -49,10 +49,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
 
     // Kelola kelas
     Route::resource('kelas', AdminProgramController::class)->parameters(['kelas' => 'id'])->except('show');
+    Route::patch('kelas/{id}/toggle-status', [AdminProgramController::class, 'toggleStatus'])->whereNumber('id')->name('kelas.toggle-status');
 
     // Kelola pendaftar
     Route::get('pendaftar/export', [AdminRegistrationController::class, 'export'])->name('pendaftar.export');
-    Route::post('pendaftar/bulk-status', [AdminRegistrationController::class, 'bulkUpdateStatus'])->name('pendaftar.bulk-status'); // <-- FITUR BARU: Aksi Massal
+    Route::post('pendaftar/bulk-status', [AdminRegistrationController::class, 'bulkUpdateStatus'])->name('pendaftar.bulk-status');
     Route::get('pendaftar', [AdminRegistrationController::class, 'index'])->name('pendaftar.index');
     Route::get('pendaftar/{id}', [AdminRegistrationController::class, 'show'])->whereNumber('id')->name('pendaftar.show');
     Route::patch('pendaftar/{id}/status', [AdminRegistrationController::class, 'updateStatus'])->whereNumber('id')->name('pendaftar.status');
