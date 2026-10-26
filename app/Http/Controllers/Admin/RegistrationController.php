@@ -62,6 +62,56 @@ class RegistrationController extends Controller
         return back()->with('success', 'Status pendaftar diperbarui.');
     }
 
+    /** FITUR BARU: Mengubah status banyak pendaftar sekaligus (Bulk Action) */
+    public function bulkUpdateStatus(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:registrations,id'],
+            'status' => ['required', Rule::in(array_keys(Registration::STATUSES))],
+        ]);
+
+        $status = $data['status'];
+        $registrations = Registration::with('program')->whereIn('id', $data['ids'])->get();
+
+        $successCount = 0;
+        $errorMessages = [];
+
+        foreach ($registrations as $registration) {
+            $updateData = ['status' => $status];
+
+            if ($status === 'certificate_issued') {
+                if (! $registration->program->hasCertificateTemplate()) {
+                    $errorMessages[] = "Template sertifikat kelas '{$registration->program->short_title}' belum diunggah.";
+                    continue; // Lewati peserta ini jika template kelasnya belum ada
+                }
+
+                $updateData['certificate_issued_at'] = $registration->certificate_issued_at ?? now();
+
+                if (blank($registration->certificate_number)) {
+                    $number = Registration::makeCertificateNumber($registration->program, $registration->phone);
+
+                    if (Registration::where('certificate_number', $number)->exists()) {
+                        $errorMessages[] = "Nomor sertifikat {$number} sudah terpakai.";
+                        continue; // Lewati jika nomor WA ganda
+                    }
+
+                    $updateData['certificate_number'] = $number;
+                }
+            }
+
+            $registration->update($updateData);
+            $successCount++;
+        }
+
+        if (count($errorMessages) > 0) {
+            $errorString = implode(' ', array_unique($errorMessages));
+            return back()->with('warning', "Berhasil memproses $successCount data. Namun ada yang gagal: $errorString");
+        }
+
+        return back()->with('success', "Status $successCount pendaftar berhasil diperbarui secara massal.");
+    }
+
     public function destroy(int $id)
     {
         Registration::findOrFail($id)->delete();
