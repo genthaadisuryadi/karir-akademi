@@ -77,6 +77,19 @@ class ProgramController extends Controller
         return back()->with('success', "Kelas berhasil {$statusText}.");
     }
 
+    public function toggleClose(int $id)
+    {
+        $program = Program::findOrFail($id);
+        // Jika ditutup, pastikan is_active bernilai 1 agar tetap tampil di portofolio web
+        $program->update([
+            'is_closed' => !$program->is_closed,
+            'is_active' => 1
+        ]);
+
+        $statusText = $program->is_closed ? 'ditutup' : 'dibuka kembali';
+        return back()->with('success', "Pendaftaran kelas berhasil {$statusText}.");
+    }
+
     public function destroy(int $id)
     {
         $program = Program::withCount('registrations')->findOrFail($id);
@@ -181,6 +194,7 @@ class ProgramController extends Controller
         $data['price_label'] = ($data['price_label'] ?? null) ?: 'GRATIS';
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['is_active'] = $request->boolean('is_active');
+        $data['is_closed'] = $request->boolean('is_closed');
         $data['is_featured'] = $request->boolean('is_featured');
         $data['min_participants'] = null;
         $data['meta'] = Program::buildMeta($data);

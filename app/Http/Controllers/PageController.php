@@ -31,10 +31,15 @@ class PageController extends Controller
 
         $input = trim($data['code']);
 
-        // 1. CEK PEMATERI: Jika input adalah nomor WA pemateri, langsung buka PDF-nya
-        $programAsInstructor = Program::where('instructor_phone', $input)->first();
-        if ($programAsInstructor) {
-            return redirect('/sertifikat/' . $programAsInstructor->certificate_prefix . '-' . $programAsInstructor->instructor_phone);
+        // 1. CEK PEMATERI & MODERATOR: Cek ke 4 kolom panitia sekaligus
+        $programAsStaff = Program::where('instructor_phone', $input)
+                                ->orWhere('instructor_2_phone', $input)
+                                ->orWhere('instructor_3_phone', $input)
+                                ->orWhere('moderator_phone', $input)
+                                ->first();
+                                
+        if ($programAsStaff) {
+            return redirect('/sertifikat/' . $programAsStaff->certificate_prefix . '-' . $input);
         }
 
         // 2. CEK PESERTA: Jika bukan pemateri, cari data pendaftar (peserta)

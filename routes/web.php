@@ -50,6 +50,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'staff'])->group(fun
     // Kelola kelas
     Route::resource('kelas', AdminProgramController::class)->parameters(['kelas' => 'id'])->except('show');
     Route::patch('kelas/{id}/toggle-status', [AdminProgramController::class, 'toggleStatus'])->whereNumber('id')->name('kelas.toggle-status');
+    Route::patch('kelas/{id}/toggle-close', [AdminProgramController::class, 'toggleClose'])->whereNumber('id')->name('kelas.toggle-close');
 
     // Kelola pendaftar
     Route::get('pendaftar/export', [AdminRegistrationController::class, 'export'])->name('pendaftar.export');

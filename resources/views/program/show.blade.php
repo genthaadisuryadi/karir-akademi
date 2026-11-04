@@ -80,6 +80,8 @@
         <div class="pd-cta">
             @if($isRegistered)
                 <a href="{{ route('registration.search') }}" class="btn outline">Lihat Kelas Saya</a>
+            @elseif($program->is_closed)
+                <button class="btn" disabled style="background-color: #dde3ec; color: #6c788a; border-color: #cdd5df; cursor: not-allowed;">Pendaftaran Ditutup</button>
             @elseif($program->isFull())
                 <button class="btn" disabled>Kuota Penuh</button>
             @else

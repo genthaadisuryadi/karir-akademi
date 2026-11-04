@@ -27,6 +27,7 @@ class Program extends Model
             'meta' => 'array',
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
+            'is_closed' => 'boolean',
         ];
     }
 

@@ -28,25 +28,40 @@
                     <td>{{ $p->registrations_count }}@if($p->quota) <span class="muted small">/ {{ $p->quota }}</span>@endif</td>
                     <td>
                         <!-- Label Status -->
-                        @if($p->is_active)
-                            <span class="badge b-ok" style="background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid #10b981;">Aktif</span>
-                        @else
+                        @if(!$p->is_active)
                             <span class="badge b-gray" style="background: rgba(107, 114, 128, 0.1); color: #4b5563; border: 1px solid #9ca3af;">Diarsipkan</span>
+                        @elseif($p->is_closed)
+                            <span class="badge" style="background: rgba(99, 102, 241, 0.1); color: #4f46e5; border: 1px solid #6366f1;">Ditutup</span>
+                        @else
+                            <span class="badge b-ok" style="background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid #10b981;">Aktif</span>
                         @endif
                     </td>
                     <td>
                         <div class="acts" style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-start;">
                             <a class="btn ghost sm" href="{{ route('admin.kelas.edit', $p->id) }}">Edit</a>
                             
-                            <!-- Tombol Arsipkan/Aktifkan -->
-                            <form method="POST" action="{{ route('admin.kelas.toggle-status', $p->id) }}" style="margin:0">
-                                @csrf @method('PATCH')
-                                @if($p->is_active)
-                                    <button class="btn sm yellow" type="submit" onclick="return confirm('Arsipkan kelas ini? Kelas tidak akan terlihat lagi di halaman publik.')" style="background-color: #f59e0b; color: white;">Arsipkan</button>
-                                @else
-                                    <button class="btn sm" type="submit" onclick="return confirm('Aktifkan kembali kelas ini? Kelas akan langsung tayang di halaman publik.')" style="background-color: #10b981; color: white;">Aktifkan</button>
-                                @endif
-                            </form>
+                            @if(!$p->is_active)
+                                <!-- Jika Diarsipkan -->
+                                <form method="POST" action="{{ route('admin.kelas.toggle-status', $p->id) }}" style="margin:0">
+                                    @csrf @method('PATCH')
+                                    <button class="btn sm" type="submit" onclick="return confirm('Aktifkan kembali kelas ini?')" style="background-color: #10b981; color: white;">Aktifkan</button>
+                                </form>
+                            @else
+                                <!-- Jika Aktif / Ditutup -->
+                                <form method="POST" action="{{ route('admin.kelas.toggle-close', $p->id) }}" style="margin:0">
+                                    @csrf @method('PATCH')
+                                    @if($p->is_closed)
+                                        <button class="btn sm" type="submit" onclick="return confirm('Buka kembali pendaftaran kelas ini?')" style="background-color: #3b82f6; color: white;">Buka Daftar</button>
+                                    @else
+                                        <button class="btn sm" type="submit" onclick="return confirm('Tutup pendaftaran? Kelas tetap tayang di halaman publik sebagai portofolio.')" style="background-color: #6366f1; color: white;">Tutup Daftar</button>
+                                    @endif
+                                </form>
+
+                                <form method="POST" action="{{ route('admin.kelas.toggle-status', $p->id) }}" style="margin:0">
+                                    @csrf @method('PATCH')
+                                    <button class="btn sm yellow" type="submit" onclick="return confirm('Arsipkan kelas? Kelas akan hilang dari halaman publik.')" style="background-color: #f59e0b; color: white;">Arsipkan</button>
+                                </form>
+                            @endif
 
                             <form method="POST" action="{{ route('admin.kelas.destroy', $p->id) }}" onsubmit="return confirm('Hapus kelas ini? Tindakan tidak dapat dibatalkan.')" style="margin:0">
                                 @csrf @method('DELETE')

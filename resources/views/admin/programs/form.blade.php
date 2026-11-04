@@ -3,6 +3,7 @@
     $editing = $program->exists;
     $hasOld = count(old()) > 0;
     $isActive = $hasOld ? (bool) old('is_active') : (bool) ($program->is_active ?? true);
+    $isClosed = $hasOld ? (bool) old('is_closed') : (bool) ($program->is_closed ?? false);
 @endphp
 @section('title', $editing ? 'Edit Kelas' : 'Tambah Kelas')
 @section('heading', $editing ? 'Edit Kelas' : 'Tambah Kelas')
@@ -117,52 +118,69 @@
                 @error('benefit')<div class="ferr">{{ $message }}</div>@enderror
             </div>
 
-            <div class="sec-title" style="margin-top: 15px; margin-bottom: 10px; font-weight: bold; font-size: 16px;">Susunan Pengajar / Panitia</div>
+            <!-- BAGIAN PENGAJAR (VERTIKAL) -->
+            <div class="sec-title" style="margin-top: 25px; margin-bottom: 15px; font-weight: bold; font-size: 16px;">Susunan Pengajar / Panitia</div>
             
-            <div class="f @error('instructor') has-error @enderror">
-                <label for="instructor">Nama Pemateri Utama</label>
-                <input class="input" id="instructor" name="instructor" value="{{ old('instructor', $program->instructor) }}" placeholder="Nama pengajar">
-                @error('instructor')<div class="ferr">{{ $message }}</div>@enderror
-            </div>
-            <div class="f @error('instructor_phone') has-error @enderror">
-                <label for="instructor_phone">No. WA Pemateri Utama (Rahasia)</label>
-                <input class="input" id="instructor_phone" type="tel" name="instructor_phone" value="{{ old('instructor_phone', $program->instructor_phone) }}" placeholder="081234567890">
-                <div class="hint">Digunakan membuat URL Sertifikat Pemateri 1.</div>
-                @error('instructor_phone')<div class="ferr">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="f @error('instructor_2') has-error @enderror">
-                <label for="instructor_2">Nama Pemateri 2 (Opsional)</label>
-                <input class="input" id="instructor_2" name="instructor_2" value="{{ old('instructor_2', $program->instructor_2) }}" placeholder="Nama pengajar 2">
-                @error('instructor_2')<div class="ferr">{{ $message }}</div>@enderror
-            </div>
-            <div class="f @error('instructor_2_phone') has-error @enderror">
-                <label for="instructor_2_phone">No. WA Pemateri 2 (Opsional)</label>
-                <input class="input" id="instructor_2_phone" type="tel" name="instructor_2_phone" value="{{ old('instructor_2_phone', $program->instructor_2_phone) }}" placeholder="081234567890">
-                @error('instructor_2_phone')<div class="ferr">{{ $message }}</div>@enderror
+            <!-- Pemateri 1 -->
+            <div class="f full" style="background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;">
+                <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Pemateri 1</div>
+                <div class="f @error('instructor') has-error @enderror" style="margin-bottom: 12px;">
+                    <label for="instructor">Nama</label>
+                    <input class="input" id="instructor" name="instructor" value="{{ old('instructor', $program->instructor) }}">
+                    @error('instructor')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
+                <div class="f @error('instructor_phone') has-error @enderror" style="margin:0;">
+                    <label for="instructor_phone">No. WA</label>
+                    <input class="input" id="instructor_phone" type="tel" name="instructor_phone" value="{{ old('instructor_phone', $program->instructor_phone) }}">
+                    @error('instructor_phone')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
             </div>
 
-            <div class="f @error('instructor_3') has-error @enderror">
-                <label for="instructor_3">Nama Pemateri 3 (Opsional)</label>
-                <input class="input" id="instructor_3" name="instructor_3" value="{{ old('instructor_3', $program->instructor_3) }}" placeholder="Nama pengajar 3">
-                @error('instructor_3')<div class="ferr">{{ $message }}</div>@enderror
-            </div>
-            <div class="f @error('instructor_3_phone') has-error @enderror">
-                <label for="instructor_3_phone">No. WA Pemateri 3 (Opsional)</label>
-                <input class="input" id="instructor_3_phone" type="tel" name="instructor_3_phone" value="{{ old('instructor_3_phone', $program->instructor_3_phone) }}" placeholder="081234567890">
-                @error('instructor_3_phone')<div class="ferr">{{ $message }}</div>@enderror
+            <!-- Pemateri 2 -->
+            <div class="f full" style="background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;">
+                <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Pemateri 2</div>
+                <div class="f @error('instructor_2') has-error @enderror" style="margin-bottom: 12px;">
+                    <label for="instructor_2">Nama</label>
+                    <input class="input" id="instructor_2" name="instructor_2" value="{{ old('instructor_2', $program->instructor_2) }}">
+                    @error('instructor_2')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
+                <div class="f @error('instructor_2_phone') has-error @enderror" style="margin:0;">
+                    <label for="instructor_2_phone">No. WA</label>
+                    <input class="input" id="instructor_2_phone" type="tel" name="instructor_2_phone" value="{{ old('instructor_2_phone', $program->instructor_2_phone) }}">
+                    @error('instructor_2_phone')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
             </div>
 
-            <div class="f @error('moderator') has-error @enderror">
-                <label for="moderator">Nama Moderator (Opsional)</label>
-                <input class="input" id="moderator" name="moderator" value="{{ old('moderator', $program->moderator) }}" placeholder="Nama Moderator">
-                @error('moderator')<div class="ferr">{{ $message }}</div>@enderror
+            <!-- Pemateri 3 -->
+            <div class="f full" style="background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;">
+                <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Pemateri 3</div>
+                <div class="f @error('instructor_3') has-error @enderror" style="margin-bottom: 12px;">
+                    <label for="instructor_3">Nama</label>
+                    <input class="input" id="instructor_3" name="instructor_3" value="{{ old('instructor_3', $program->instructor_3) }}">
+                    @error('instructor_3')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
+                <div class="f @error('instructor_3_phone') has-error @enderror" style="margin:0;">
+                    <label for="instructor_3_phone">No. WA</label>
+                    <input class="input" id="instructor_3_phone" type="tel" name="instructor_3_phone" value="{{ old('instructor_3_phone', $program->instructor_3_phone) }}">
+                    @error('instructor_3_phone')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
             </div>
-            <div class="f @error('moderator_phone') has-error @enderror">
-                <label for="moderator_phone">No. WA Moderator (Opsional)</label>
-                <input class="input" id="moderator_phone" type="tel" name="moderator_phone" value="{{ old('moderator_phone', $program->moderator_phone) }}" placeholder="081234567890">
-                @error('moderator_phone')<div class="ferr">{{ $message }}</div>@enderror
+
+            <!-- Moderator -->
+            <div class="f full" style="background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;">
+                <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Moderator</div>
+                <div class="f @error('moderator') has-error @enderror" style="margin-bottom: 12px;">
+                    <label for="moderator">Nama</label>
+                    <input class="input" id="moderator" name="moderator" value="{{ old('moderator', $program->moderator) }}">
+                    @error('moderator')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
+                <div class="f @error('moderator_phone') has-error @enderror" style="margin:0;">
+                    <label for="moderator_phone">No. WA</label>
+                    <input class="input" id="moderator_phone" type="tel" name="moderator_phone" value="{{ old('moderator_phone', $program->moderator_phone) }}">
+                    @error('moderator_phone')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
             </div>
+
 
             <div class="f full @error('whatsapp_group_link') has-error @enderror" style="margin-top: 20px;">
                 <label for="whatsapp_group_link">Tautan Kelas / Grup</label>
@@ -227,7 +245,13 @@
                 </div>
             @endforeach
 
-            <div class="f"><label class="chk"><input type="checkbox" name="is_active" value="1" @checked($isActive)> Aktif (tampil di halaman publik)</label></div>
+            <div class="f">
+                <label class="chk"><input type="checkbox" name="is_active" value="1" @checked($isActive)> Aktif (Tampil di halaman publik)</label>
+            </div>
+            
+            <div class="f">
+                <label class="chk" style="color:#4f46e5; font-weight:600;"><input type="checkbox" name="is_closed" value="1" @checked($isClosed)> Tutup Pendaftaran (Berfungsi sebagai Portofolio; tampil di publik tapi tidak bisa diklik daftar)</label>
+            </div>
         </div>
 
         <div class="form-actions">

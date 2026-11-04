@@ -77,7 +77,6 @@ class RegistrationController extends Controller
 
         unset($data['agree']);
 
-        // Mapping variabel input ke struktur kolom database
         $data['school_name'] = $data['nama_sekolah'] ?? $data['instansi'] ?? null;
         $data['class_name'] = $data['kelas'] ?? null;
 
@@ -92,7 +91,7 @@ class RegistrationController extends Controller
         $registration = Registration::create($data + [
             'program_id' => $program->id,
             'code' => $this->generateCode(),
-            'status' => 'registered', // Langsung berstatus 'Mendaftar'
+            'status' => 'registered', 
             'certificate_number' => Registration::makeCertificateNumber($program, $data['phone']),
         ]);
 
@@ -108,28 +107,41 @@ class RegistrationController extends Controller
         return view('registration.success', compact('registration'));
     }
 
-    /** Form pencarian kelas yang sudah didaftar. */
     public function search()
     {
         return view('registration.search');
     }
 
-    /**
-     * Proses pencarian. Satu kolom: bisa diisi email, nomor HP, atau nomor registrasi.
-     * Jenis input dikenali otomatis oleh SearchRegistrationRequest::identifier().
-     */
     public function find(SearchRegistrationRequest $request)
     {
         ['type' => $type, 'value' => $value] = $request->identifier();
 
-        // Cek apakah input adalah Nomor WA Pemateri
+        // Cek apakah input adalah Nomor WA Pemateri atau Moderator
         if ($type === 'phone') {
             $phoneVariants = Registration::phoneVariants($value);
             
-            $programAsInstructor = Program::whereIn('instructor_phone', $phoneVariants)->first();
+            $programAsStaff = Program::whereIn('instructor_phone', $phoneVariants)
+                                    ->orWhereIn('instructor_2_phone', $phoneVariants)
+                                    ->orWhereIn('instructor_3_phone', $phoneVariants)
+                                    ->orWhereIn('moderator_phone', $phoneVariants)
+                                    ->first();
             
-            if ($programAsInstructor) {
-                return redirect('/sertifikat/' . $programAsInstructor->certificate_prefix . '-' . $programAsInstructor->instructor_phone);
+            if ($programAsStaff) {
+                // Temukan persis nomor mana yang match agar URL-nya tepat
+                $matchedPhone = null;
+                foreach ($phoneVariants as $variant) {
+                    if ($programAsStaff->instructor_phone === $variant ||
+                        $programAsStaff->instructor_2_phone === $variant ||
+                        $programAsStaff->instructor_3_phone === $variant ||
+                        $programAsStaff->moderator_phone === $variant) {
+                        $matchedPhone = $variant;
+                        break;
+                    }
+                }
+                
+                if ($matchedPhone) {
+                    return redirect('/sertifikat/' . $programAsStaff->certificate_prefix . '-' . $matchedPhone);
+                }
             }
         }
 
@@ -159,7 +171,6 @@ class RegistrationController extends Controller
         ));
     }
 
-    /** Detail kelas yang sudah didaftar (deskripsi + link grup WhatsApp). */
     public function myClass(Request $request)
     {
         if (! $request->hasValidSignature()) {
