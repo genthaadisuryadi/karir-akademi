@@ -37,6 +37,8 @@ class ProgramController extends Controller
         $data['certificate_back'] = $this->storeTemplate($request, 'certificate_back', null);
         $data['instructor_certificate_front'] = $this->storeTemplate($request, 'instructor_certificate_front', null);
         $data['instructor_certificate_back'] = $this->storeTemplate($request, 'instructor_certificate_back', null);
+        $data['moderator_certificate_front'] = $this->storeTemplate($request, 'moderator_certificate_front', null);
+        $data['moderator_certificate_back'] = $this->storeTemplate($request, 'moderator_certificate_back', null);
 
         Program::create($data);
 
@@ -58,6 +60,8 @@ class ProgramController extends Controller
         $data['certificate_back'] = $this->storeTemplate($request, 'certificate_back', $program->certificate_back);
         $data['instructor_certificate_front'] = $this->storeTemplate($request, 'instructor_certificate_front', $program->instructor_certificate_front);
         $data['instructor_certificate_back'] = $this->storeTemplate($request, 'instructor_certificate_back', $program->instructor_certificate_back);
+        $data['moderator_certificate_front'] = $this->storeTemplate($request, 'moderator_certificate_front', $program->moderator_certificate_front);
+        $data['moderator_certificate_back'] = $this->storeTemplate($request, 'moderator_certificate_back', $program->moderator_certificate_back);
 
         $program->update($data);
 
@@ -86,6 +90,8 @@ class ProgramController extends Controller
         $this->deleteTemplate($program->certificate_back);
         $this->deleteTemplate($program->instructor_certificate_front);
         $this->deleteTemplate($program->instructor_certificate_back);
+        $this->deleteTemplate($program->moderator_certificate_front);
+        $this->deleteTemplate($program->moderator_certificate_back);
         $program->delete();
 
         return redirect()->route('admin.kelas.index')->with('success', 'Kelas berhasil dihapus.');
@@ -111,7 +117,7 @@ class ProgramController extends Controller
             'dimensions:min_width='.$template['min_width'].',min_height='.$template['min_height'].',max_width=3600,max_height=2600',
         ];
         
-        $instructorTemplateRules = fn () => [
+        $optionalTemplateRules = fn () => [
             'nullable',
             'file', 'mimes:png', 'mimetypes:image/png',
             'max:'.$template['max_kb'],
@@ -128,11 +134,16 @@ class ProgramController extends Controller
                 'regex:/^[a-z0-9_]+$/',
                 Rule::unique('programs', 'certificate_prefix')->ignore($id),
             ],
+            
+            // Templates
             'certificate_front' => $templateRules($program?->certificate_front),
             'certificate_back' => $templateRules($program?->certificate_back),
+            'instructor_certificate_front' => $optionalTemplateRules(),
+            'instructor_certificate_back' => $optionalTemplateRules(),
+            'moderator_certificate_front' => $optionalTemplateRules(),
+            'moderator_certificate_back' => $optionalTemplateRules(),
             
-            'instructor_certificate_front' => $instructorTemplateRules(),
-            'instructor_certificate_back' => $instructorTemplateRules(),
+            // Staff Details
             'instructor' => ['nullable', 'string', 'max:255'],
             'instructor_phone' => ['nullable', 'regex:/^(\+62|62|0)8[0-9]{7,13}$/'],
             'instructor_2' => ['nullable', 'string', 'max:255'],
@@ -142,6 +153,7 @@ class ProgramController extends Controller
             'moderator' => ['nullable', 'string', 'max:255'],
             'moderator_phone' => ['nullable', 'regex:/^(\+62|62|0)8[0-9]{7,13}$/'],
 
+            // Class details
             'price_label' => ['nullable', 'string', 'max:30'],
             'jp' => ['required', 'integer', 'min:0', 'max:99'],
             'date_label' => ['required', 'string', 'max:150'],
@@ -160,7 +172,9 @@ class ProgramController extends Controller
             $data['certificate_front'], 
             $data['certificate_back'],
             $data['instructor_certificate_front'],
-            $data['instructor_certificate_back']
+            $data['instructor_certificate_back'],
+            $data['moderator_certificate_front'],
+            $data['moderator_certificate_back']
         );
 
         $data['short_title'] = ($data['short_title'] ?? null) ?: $data['title'];

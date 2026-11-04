@@ -11,7 +11,6 @@ class Program extends Model
 {
     protected $guarded = [];
 
-    /** Target peserta kelas. */
     public const AUDIENCES = [
         'siswa' => 'Siswa/Mahasiswa',
         'guru' => 'Guru/Dosen',
@@ -41,34 +40,25 @@ class Program extends Model
         return $this->hasMany(Registration::class);
     }
 
-    /** Susun baris info kartu (jadwal dan jam) dari isian form admin. */
     public static function buildMeta(array $d): array
     {
         $meta = [['icon' => 'calendar', 'text' => $d['date_label']]];
-
         if (! empty($d['time_label'])) {
             $meta[] = ['icon' => 'clock', 'text' => $d['time_label']];
         }
-
         return $meta;
     }
 
-    /** Deskripsi kelas (Markdown) sebagai HTML yang sudah disanitasi. */
     public function descriptionHtml(): HtmlString
     {
         return static::renderMarkdown($this->description);
     }
 
-    /** Benefit kelas (Markdown) sebagai HTML yang sudah disanitasi. */
     public function benefitHtml(): HtmlString
     {
         return static::renderMarkdown($this->benefit);
     }
 
-    /**
-     * Markdown -> HTML. Tag HTML mentah dibuang dan link berbahaya (javascript:, dsb.)
-     * ditolak, sehingga aman ditampilkan walau diketik admin/staf.
-     */
     public static function renderMarkdown(?string $text): HtmlString
     {
         return new HtmlString(Str::markdown((string) $text, [
@@ -102,16 +92,19 @@ class Program extends Model
         return self::AUDIENCES[$this->audience] ?? (string) $this->audience;
     }
 
-    /** Template sertifikat peserta (PNG) tersedia bila kedua sisi sudah diunggah. */
     public function hasCertificateTemplate(): bool
     {
         return filled($this->certificate_front) && filled($this->certificate_back);
     }
 
-    /** Template sertifikat khusus pemateri (PNG) tersedia bila kedua sisi sudah diunggah. */
     public function hasInstructorCertificateTemplate(): bool
     {
         return filled($this->instructor_certificate_front) && filled($this->instructor_certificate_back);
+    }
+    
+    public function hasModeratorCertificateTemplate(): bool
+    {
+        return filled($this->moderator_certificate_front) && filled($this->moderator_certificate_back);
     }
 
     public function isFull(): bool

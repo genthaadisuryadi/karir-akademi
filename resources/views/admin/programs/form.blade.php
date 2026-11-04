@@ -188,9 +188,9 @@
                     <input class="input" id="{{ $field }}" type="file" name="{{ $field }}" accept="image/png" @required(! filled($program->{$field}))>
                     <div class="hint">
                         @if($field === 'certificate_front')
-                            PNG halaman depan. Nama, nomor, tanggal, dan QR Code ditempatkan otomatis di posisi tetap.
+                            PNG halaman depan. Nama, nomor, tanggal, dan QR Code ditempatkan otomatis.
                         @else
-                            PNG halaman belakang (statis, tidak ada data peserta).
+                            PNG halaman belakang statis (tanpa nama peserta).
                         @endif
                         Min. 1000 x 700 px, maks. 3600 x 2600 px, 8 MB.
                     </div>
@@ -204,14 +204,24 @@
             <!-- SECTION: SERTIFIKAT PEMATERI -->
             @foreach(['instructor_certificate_front' => 'Depan', 'instructor_certificate_back' => 'Belakang'] as $field => $side)
                 <div class="f @error($field) has-error @enderror">
-                    <label for="{{ $field }}">Template Sertifikat PEMATERI / MODERATOR {{ $side }} (PNG) <span class="muted small">(Opsional)</span></label>
+                    <label for="{{ $field }}">Template Sertifikat PEMATERI {{ $side }} (PNG) <span class="muted small">(Opsional)</span></label>
                     <input class="input" id="{{ $field }}" type="file" name="{{ $field }}" accept="image/png">
-                    <div class="hint">
-                        Template khusus ini akan dipakai oleh semua pengajar dan moderator yang terdaftar. 
-                        Min. 1000 x 700 px, maks. 3600 x 2600 px, 8 MB.
-                    </div>
+                    <div class="hint">Khusus Pemateri. Kosongkan jika ingin memakai desain sertifikat peserta.</div>
                     @if(filled($program->{$field}))
-                        <div class="muted small">Template sudah diunggah. Pilih berkas baru hanya jika ingin menggantinya.</div>
+                        <div class="muted small">Template sudah diunggah.</div>
+                    @endif
+                    @error($field)<div class="ferr">{{ $message }}</div>@enderror
+                </div>
+            @endforeach
+
+            <!-- SECTION: SERTIFIKAT MODERATOR -->
+            @foreach(['moderator_certificate_front' => 'Depan', 'moderator_certificate_back' => 'Belakang'] as $field => $side)
+                <div class="f @error($field) has-error @enderror">
+                    <label for="{{ $field }}">Template Sertifikat MODERATOR {{ $side }} (PNG) <span class="muted small">(Opsional)</span></label>
+                    <input class="input" id="{{ $field }}" type="file" name="{{ $field }}" accept="image/png">
+                    <div class="hint">Khusus Moderator. Kosongkan jika ingin memakai desain sertifikat peserta.</div>
+                    @if(filled($program->{$field}))
+                        <div class="muted small">Template sudah diunggah.</div>
                     @endif
                     @error($field)<div class="ferr">{{ $message }}</div>@enderror
                 </div>

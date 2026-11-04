@@ -24,6 +24,7 @@ class CertificateController extends Controller
             
             $staffName = 'Panitia / Pengajar';
             $urlPrefix = $programAsStaff->certificate_prefix . '-';
+            $isModerator = false;
             
             if ($urlPrefix . $programAsStaff->instructor_phone === $number) {
                 $staffName = $programAsStaff->instructor;
@@ -33,15 +34,26 @@ class CertificateController extends Controller
                 $staffName = $programAsStaff->instructor_3;
             } elseif ($urlPrefix . $programAsStaff->moderator_phone === $number) {
                 $staffName = $programAsStaff->moderator;
+                $isModerator = true; // Tandai bahwa dia adalah moderator
             }
+
+            // Tentukan template Front (Moderator -> Pemateri -> Peserta)
+            $frontTemplate = $isModerator 
+                ? ($programAsStaff->moderator_certificate_front ?: $programAsStaff->certificate_front) 
+                : ($programAsStaff->instructor_certificate_front ?: $programAsStaff->certificate_front);
+
+            // Tentukan template Back (Moderator -> Pemateri -> Peserta)
+            $backTemplate = $isModerator 
+                ? ($programAsStaff->moderator_certificate_back ?: $programAsStaff->certificate_back) 
+                : ($programAsStaff->instructor_certificate_back ?: $programAsStaff->certificate_back);
 
             return $this->renderCertificate($request, [
                 'name' => $staffName,
                 'number' => $number,
                 'date' => now(), 
                 'url' => url('/sertifikat/' . $number),
-                'front' => $programAsStaff->instructor_certificate_front ?: $programAsStaff->certificate_front,
-                'back' => $programAsStaff->instructor_certificate_back ?: $programAsStaff->certificate_back,
+                'front' => $frontTemplate,
+                'back' => $backTemplate,
             ]);
         }
 
