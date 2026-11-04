@@ -13,8 +13,8 @@ class Program extends Model
 
     /** Target peserta kelas. */
     public const AUDIENCES = [
-        'siswa' => 'Siswa SMA/SMK',
-        'guru' => 'Guru',
+        'siswa' => 'Siswa/Mahasiswa',
+        'guru' => 'Guru/Dosen',
         'umum' => 'Umum',
     ];
 

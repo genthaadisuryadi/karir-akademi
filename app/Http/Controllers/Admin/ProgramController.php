@@ -35,8 +35,6 @@ class ProgramController extends Controller
         $data['poster'] = $this->storePoster($request, null);
         $data['certificate_front'] = $this->storeTemplate($request, 'certificate_front', null);
         $data['certificate_back'] = $this->storeTemplate($request, 'certificate_back', null);
-        
-        // Simpan template khusus pemateri
         $data['instructor_certificate_front'] = $this->storeTemplate($request, 'instructor_certificate_front', null);
         $data['instructor_certificate_back'] = $this->storeTemplate($request, 'instructor_certificate_back', null);
 
@@ -58,8 +56,6 @@ class ProgramController extends Controller
         $data['poster'] = $this->storePoster($request, $program->poster);
         $data['certificate_front'] = $this->storeTemplate($request, 'certificate_front', $program->certificate_front);
         $data['certificate_back'] = $this->storeTemplate($request, 'certificate_back', $program->certificate_back);
-        
-        // Simpan template khusus pemateri
         $data['instructor_certificate_front'] = $this->storeTemplate($request, 'instructor_certificate_front', $program->instructor_certificate_front);
         $data['instructor_certificate_back'] = $this->storeTemplate($request, 'instructor_certificate_back', $program->instructor_certificate_back);
 
@@ -68,12 +64,9 @@ class ProgramController extends Controller
         return redirect()->route('admin.kelas.index')->with('success', 'Kelas berhasil diperbarui.');
     }
     
-    /** FITUR BARU: Mengaktifkan/Menonaktifkan Kelas dengan cepat */
     public function toggleStatus(int $id)
     {
         $program = Program::findOrFail($id);
-        
-        // Membalikkan status saat ini (Aktif jadi Nonaktif, Nonaktif jadi Aktif)
         $program->update(['is_active' => !$program->is_active]);
 
         $statusText = $program->is_active ? 'diaktifkan' : 'dinonaktifkan (diarsipkan)';
@@ -101,8 +94,6 @@ class ProgramController extends Controller
     private function validated(Request $request, ?Program $program = null): array
     {
         $id = $program?->id;
-
-        // Prefix dikunci setelah ada pendaftar karena sudah menjadi bagian nomor sertifikat dan QR Code.
         $prefixLocked = $program !== null && filled($program->certificate_prefix) && $program->registrations()->exists();
 
         $request->merge([
@@ -120,7 +111,6 @@ class ProgramController extends Controller
             'dimensions:min_width='.$template['min_width'].',min_height='.$template['min_height'].',max_width=3600,max_height=2600',
         ];
         
-        // Aturan untuk template pemateri (opsional)
         $instructorTemplateRules = fn () => [
             'nullable',
             'file', 'mimes:png', 'mimetypes:image/png',
@@ -141,10 +131,16 @@ class ProgramController extends Controller
             'certificate_front' => $templateRules($program?->certificate_front),
             'certificate_back' => $templateRules($program?->certificate_back),
             
-            // Validasi field pemateri
             'instructor_certificate_front' => $instructorTemplateRules(),
             'instructor_certificate_back' => $instructorTemplateRules(),
+            'instructor' => ['nullable', 'string', 'max:255'],
             'instructor_phone' => ['nullable', 'regex:/^(\+62|62|0)8[0-9]{7,13}$/'],
+            'instructor_2' => ['nullable', 'string', 'max:255'],
+            'instructor_2_phone' => ['nullable', 'regex:/^(\+62|62|0)8[0-9]{7,13}$/'],
+            'instructor_3' => ['nullable', 'string', 'max:255'],
+            'instructor_3_phone' => ['nullable', 'regex:/^(\+62|62|0)8[0-9]{7,13}$/'],
+            'moderator' => ['nullable', 'string', 'max:255'],
+            'moderator_phone' => ['nullable', 'regex:/^(\+62|62|0)8[0-9]{7,13}$/'],
 
             'price_label' => ['nullable', 'string', 'max:30'],
             'jp' => ['required', 'integer', 'min:0', 'max:99'],
@@ -153,54 +149,10 @@ class ProgramController extends Controller
             'location' => ['nullable', 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:5000'],
             'benefit' => ['nullable', 'string', 'max:3000'],
-            'instructor' => ['nullable', 'string', 'max:255'],
             'whatsapp_group_link' => ['nullable', 'url:http,https', 'max:255'],
             'quota' => ['nullable', 'integer', 'min:1', 'max:100000'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'poster' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-        ], [
-            'required' => ':attribute wajib diisi.',
-            'unique' => ':attribute sudah dipakai kelas lain.',
-            'integer' => ':attribute harus berupa angka.',
-            'min' => ':attribute tidak boleh kurang dari :min.',
-            'max' => ':attribute melebihi batas yang diizinkan.',
-            'image' => 'Poster harus berupa gambar.',
-            'mimes' => 'Poster harus berformat JPG, PNG, atau WEBP.',
-            'poster.max' => 'Ukuran poster maksimal 2 MB.',
-            'certificate_prefix.regex' => 'Prefix sertifikat hanya boleh huruf kecil, angka, dan garis bawah (_), tanpa spasi.',
-            'certificate_front.mimes' => 'Template depan harus berformat PNG.',
-            'certificate_back.mimes' => 'Template belakang harus berformat PNG.',
-            'certificate_front.mimetypes' => 'Template depan harus berformat PNG.',
-            'certificate_back.mimetypes' => 'Template belakang harus berformat PNG.',
-            'instructor_certificate_front.mimes' => 'Template pemateri depan harus berformat PNG.',
-            'instructor_certificate_back.mimes' => 'Template pemateri belakang harus berformat PNG.',
-            'instructor_phone.regex' => 'Nomor WhatsApp Pemateri tidak valid.',
-            'dimensions' => ':attribute harus berukuran minimal 1000 x 700 piksel dan maksimal 3600 x 2600 piksel.',
-            'in' => 'Pilihan :attribute tidak valid.',
-            'url' => ':attribute harus berupa URL yang valid.',
-        ], [
-            'title' => 'Judul kelas',
-            'short_title' => 'Judul pada kartu',
-            'slug' => 'Slug URL',
-            'audience' => 'Target peserta',
-            'certificate_prefix' => 'Prefix sertifikat',
-            'certificate_front' => 'Template sertifikat depan',
-            'certificate_back' => 'Template sertifikat belakang',
-            'instructor_certificate_front' => 'Template pemateri (Depan)',
-            'instructor_certificate_back' => 'Template pemateri (Belakang)',
-            'instructor_phone' => 'Nomor WhatsApp Pemateri',
-            'price_label' => 'Label harga',
-            'jp' => 'Jam pelajaran (JP)',
-            'date_label' => 'Tanggal',
-            'time_label' => 'Jam',
-            'location' => 'Lokasi',
-            'description' => 'Deskripsi',
-            'benefit' => 'Benefit',
-            'instructor' => 'Pengajar',
-            'whatsapp_group_link' => 'Tautan kelas',
-            'quota' => 'Kuota',
-            'sort_order' => 'Urutan',
-            'poster' => 'Poster',
         ]);
 
         unset(
@@ -222,40 +174,29 @@ class ProgramController extends Controller
         return $data;
     }
 
-    /** Simpan poster ke public/uploads/posters (tanpa perlu storage:link). */
     private function storePoster(Request $request, ?string $old): ?string
     {
         if (! $request->hasFile('poster')) {
             return $old;
         }
-
         $file = $request->file('poster');
         $name = Str::uuid()->toString().'.'.$file->extension();
         $file->move(public_path('uploads/posters'), $name);
-
         $this->deletePoster($old);
-
         return 'uploads/posters/'.$name;
     }
 
-    /**
-     * Simpan template sertifikat (PNG) di penyimpanan privat. Berkas diberi nama acak sehingga
-     * cache JPEG-nya otomatis tidak basi saat template diganti.
-     */
     private function storeTemplate(Request $request, string $field, ?string $old): ?string
     {
         if (! $request->hasFile($field)) {
             return $old;
         }
-
         $path = $request->file($field)->storeAs(
             Program::CERTIFICATE_DIR,
             Str::uuid()->toString().'.png',
             Program::CERTIFICATE_DISK
         );
-
         $this->deleteTemplate($old);
-
         return $path ?: $old;
     }
 
@@ -268,7 +209,6 @@ class ProgramController extends Controller
 
     private function deletePoster(?string $path): void
     {
-        // Hanya hapus file unggahan admin; poster bawaan (images/...) dibiarkan.
         if ($path && str_starts_with($path, 'uploads/posters/')) {
             @unlink(public_path($path));
         }

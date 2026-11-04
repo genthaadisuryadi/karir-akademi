@@ -13,22 +13,39 @@ class CertificateController extends Controller
 {
     public function show(Request $request, string $number)
     {
-        // 1. CEK APAKAH INI SERTIFIKAT PEMATERI
-        $programAsInstructor = Program::whereRaw("CONCAT(certificate_prefix, '-', instructor_phone) = ?", [$number])->first();
+        // 1. CEK APAKAH INI SERTIFIKAT PEMATERI ATAU MODERATOR
+        $programAsStaff = Program::whereRaw("CONCAT(certificate_prefix, '-', instructor_phone) = ?", [$number])
+                                ->orWhereRaw("CONCAT(certificate_prefix, '-', instructor_2_phone) = ?", [$number])
+                                ->orWhereRaw("CONCAT(certificate_prefix, '-', instructor_3_phone) = ?", [$number])
+                                ->orWhereRaw("CONCAT(certificate_prefix, '-', moderator_phone) = ?", [$number])
+                                ->first();
 
-        if ($programAsInstructor) {
+        if ($programAsStaff) {
+            
+            $staffName = 'Panitia / Pengajar';
+            $urlPrefix = $programAsStaff->certificate_prefix . '-';
+            
+            if ($urlPrefix . $programAsStaff->instructor_phone === $number) {
+                $staffName = $programAsStaff->instructor;
+            } elseif ($urlPrefix . $programAsStaff->instructor_2_phone === $number) {
+                $staffName = $programAsStaff->instructor_2;
+            } elseif ($urlPrefix . $programAsStaff->instructor_3_phone === $number) {
+                $staffName = $programAsStaff->instructor_3;
+            } elseif ($urlPrefix . $programAsStaff->moderator_phone === $number) {
+                $staffName = $programAsStaff->moderator;
+            }
+
             return $this->renderCertificate($request, [
-                'name' => $programAsInstructor->instructor, // Mengambil nama pemateri
+                'name' => $staffName,
                 'number' => $number,
                 'date' => now(), 
                 'url' => url('/sertifikat/' . $number),
-                // Gunakan template pemateri. Jika kosong, otomatis pakai template peserta
-                'front' => $programAsInstructor->instructor_certificate_front ?: $programAsInstructor->certificate_front,
-                'back' => $programAsInstructor->instructor_certificate_back ?: $programAsInstructor->certificate_back,
+                'front' => $programAsStaff->instructor_certificate_front ?: $programAsStaff->certificate_front,
+                'back' => $programAsStaff->instructor_certificate_back ?: $programAsStaff->certificate_back,
             ]);
         }
 
-        // 2. JIKA BUKAN PEMATERI, CEK APAKAH INI SERTIFIKAT PESERTA
+        // 2. JIKA BUKAN PEMATERI/MODERATOR, CEK APAKAH INI SERTIFIKAT PESERTA
         $registration = Registration::with('program')->where('certificate_number', $number)->first();
 
         if (! $registration || ! $registration->isCertificateIssued()) {
@@ -51,7 +68,6 @@ class CertificateController extends Controller
         ]);
     }
 
-    // Fungsi helper untuk merender PDF via Base64
     private function renderCertificate(Request $request, array $data)
     {
         $qrcode = base64_encode(QrCode::format('svg')->size(120)->generate($data['url']));

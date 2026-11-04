@@ -43,7 +43,7 @@
                         <option value="{{ $value }}" @selected(old('audience', $program->audience ?? 'guru') === $value)>{{ $label }}</option>
                     @endforeach
                 </select>
-                <div class="hint">Siswa SMA/SMK: formulir meminta nama sekolah dan kelas. Guru: nama sekolah. Umum: nama instansi.</div>
+                <div class="hint">Siswa/Mahasiswa: meminta nama institusi dan prodi/kelas. Guru: nama sekolah. Umum: nama instansi.</div>
                 @error('audience')<div class="ferr">{{ $message }}</div>@enderror
             </div>
 
@@ -54,8 +54,7 @@
                 <label for="certificate_prefix">Prefix Sertifikat <span class="req">*</span></label>
                 <input class="input" id="certificate_prefix" name="certificate_prefix" value="{{ old('certificate_prefix', $program->certificate_prefix) }}" placeholder="bikin_ai_agent" pattern="[a-z0-9_]+" maxlength="60" autocapitalize="off" @readonly($prefixLocked) required>
                 <div class="hint">
-                    Harus unik antar kelas, tanpa spasi (huruf kecil, angka, dan _). Menjadi nomor sertifikat: <code>prefix-nomor_whatsapp</code>, contoh <code>bikin_ai_agent-083823051482</code>.
-                    @if($prefixLocked) Dikunci karena kelas ini sudah memiliki pendaftar. @endif
+                    Harus unik antar kelas, tanpa spasi. Menjadi nomor sertifikat: <code>prefix-nomor_whatsapp</code>.
                 </div>
                 @error('certificate_prefix')<div class="ferr">{{ $message }}</div>@enderror
             </div>
@@ -118,21 +117,54 @@
                 @error('benefit')<div class="ferr">{{ $message }}</div>@enderror
             </div>
 
-            <div class="f full @error('instructor') has-error @enderror">
-                <label for="instructor">Pengajar (Pemateri)</label>
-                <input class="input" id="instructor" name="instructor" value="{{ old('instructor', $program->instructor) }}" placeholder="Nama pengajar (pisahkan dengan koma jika lebih dari satu)">
-                <div class="hint">Tampil di halaman detail kelas, dan juga menjadi nama yang dicetak di Sertifikat Pemateri.</div>
+            <div class="sec-title" style="margin-top: 15px; margin-bottom: 10px; font-weight: bold; font-size: 16px;">Susunan Pengajar / Panitia</div>
+            
+            <div class="f @error('instructor') has-error @enderror">
+                <label for="instructor">Nama Pemateri Utama</label>
+                <input class="input" id="instructor" name="instructor" value="{{ old('instructor', $program->instructor) }}" placeholder="Nama pengajar">
                 @error('instructor')<div class="ferr">{{ $message }}</div>@enderror
             </div>
-
-            <div class="f full @error('instructor_phone') has-error @enderror">
-                <label for="instructor_phone">Nomor WhatsApp Pemateri <span class="muted small">(Rahasia)</span></label>
+            <div class="f @error('instructor_phone') has-error @enderror">
+                <label for="instructor_phone">No. WA Pemateri Utama (Rahasia)</label>
                 <input class="input" id="instructor_phone" type="tel" name="instructor_phone" value="{{ old('instructor_phone', $program->instructor_phone) }}" placeholder="081234567890">
-                <div class="hint">Opsional. Digunakan untuk membuat URL Sertifikat Pemateri. Nomor ini <b>TIDAK</b> akan ditampilkan ke publik.</div>
+                <div class="hint">Digunakan membuat URL Sertifikat Pemateri 1.</div>
                 @error('instructor_phone')<div class="ferr">{{ $message }}</div>@enderror
             </div>
 
-            <div class="f full @error('whatsapp_group_link') has-error @enderror">
+            <div class="f @error('instructor_2') has-error @enderror">
+                <label for="instructor_2">Nama Pemateri 2 (Opsional)</label>
+                <input class="input" id="instructor_2" name="instructor_2" value="{{ old('instructor_2', $program->instructor_2) }}" placeholder="Nama pengajar 2">
+                @error('instructor_2')<div class="ferr">{{ $message }}</div>@enderror
+            </div>
+            <div class="f @error('instructor_2_phone') has-error @enderror">
+                <label for="instructor_2_phone">No. WA Pemateri 2 (Opsional)</label>
+                <input class="input" id="instructor_2_phone" type="tel" name="instructor_2_phone" value="{{ old('instructor_2_phone', $program->instructor_2_phone) }}" placeholder="081234567890">
+                @error('instructor_2_phone')<div class="ferr">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="f @error('instructor_3') has-error @enderror">
+                <label for="instructor_3">Nama Pemateri 3 (Opsional)</label>
+                <input class="input" id="instructor_3" name="instructor_3" value="{{ old('instructor_3', $program->instructor_3) }}" placeholder="Nama pengajar 3">
+                @error('instructor_3')<div class="ferr">{{ $message }}</div>@enderror
+            </div>
+            <div class="f @error('instructor_3_phone') has-error @enderror">
+                <label for="instructor_3_phone">No. WA Pemateri 3 (Opsional)</label>
+                <input class="input" id="instructor_3_phone" type="tel" name="instructor_3_phone" value="{{ old('instructor_3_phone', $program->instructor_3_phone) }}" placeholder="081234567890">
+                @error('instructor_3_phone')<div class="ferr">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="f @error('moderator') has-error @enderror">
+                <label for="moderator">Nama Moderator (Opsional)</label>
+                <input class="input" id="moderator" name="moderator" value="{{ old('moderator', $program->moderator) }}" placeholder="Nama Moderator">
+                @error('moderator')<div class="ferr">{{ $message }}</div>@enderror
+            </div>
+            <div class="f @error('moderator_phone') has-error @enderror">
+                <label for="moderator_phone">No. WA Moderator (Opsional)</label>
+                <input class="input" id="moderator_phone" type="tel" name="moderator_phone" value="{{ old('moderator_phone', $program->moderator_phone) }}" placeholder="081234567890">
+                @error('moderator_phone')<div class="ferr">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="f full @error('whatsapp_group_link') has-error @enderror" style="margin-top: 20px;">
                 <label for="whatsapp_group_link">Tautan Kelas / Grup</label>
                 <input class="input" id="whatsapp_group_link" type="url" name="whatsapp_group_link" value="{{ old('whatsapp_group_link', $program->whatsapp_group_link) }}" placeholder="https://contoh.com/tautan">
                 <div class="hint">Masukkan tautan http atau https. Tautan hanya terlihat oleh peserta yang pendaftarannya dikonfirmasi.</div>
@@ -172,14 +204,10 @@
             <!-- SECTION: SERTIFIKAT PEMATERI -->
             @foreach(['instructor_certificate_front' => 'Depan', 'instructor_certificate_back' => 'Belakang'] as $field => $side)
                 <div class="f @error($field) has-error @enderror">
-                    <label for="{{ $field }}">Template Sertifikat PEMATERI {{ $side }} (PNG) <span class="muted small">(Opsional)</span></label>
+                    <label for="{{ $field }}">Template Sertifikat PEMATERI / MODERATOR {{ $side }} (PNG) <span class="muted small">(Opsional)</span></label>
                     <input class="input" id="{{ $field }}" type="file" name="{{ $field }}" accept="image/png">
                     <div class="hint">
-                        @if($field === 'instructor_certificate_front')
-                            PNG halaman depan untuk Pemateri.
-                        @else
-                            PNG halaman belakang untuk Pemateri.
-                        @endif
+                        Template khusus ini akan dipakai oleh semua pengajar dan moderator yang terdaftar. 
                         Min. 1000 x 700 px, maks. 3600 x 2600 px, 8 MB.
                     </div>
                     @if(filled($program->{$field}))

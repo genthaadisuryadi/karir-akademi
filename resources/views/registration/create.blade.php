@@ -35,13 +35,12 @@
         <form method="POST" action="{{ route('registration.store', $program) }}" novalidate>
             @csrf
 
-            <!-- PENAMBAHAN WAJIB: Input target peserta yang dikirim ke Controller -->
             <input type="hidden" name="target_peserta" value="{{ $program->audienceLabel() }}">
 
             <div class="sec-title">Data Peserta</div>
 
             <div class="field @error('name') has-error @enderror">
-                <label for="name">Nama Lengkap <span class="req">*</span></label>
+                <label for="name">Nama Siswa/Mahasiswa <span class="req">*</span></label>
                 <input id="name" name="name" type="text" value="{{ old('name') }}" placeholder="Nama beserta gelar" required>
                 @error('name')<div class="err">{{ $message }}</div>@enderror
             </div>
@@ -67,9 +66,8 @@
                 </div>
             @endunless
 
-            <div class="sec-title" style="margin-top:28px">{{ $program->isForPublic() ? 'Data Instansi' : 'Data Sekolah' }}</div>
+            <div class="sec-title" style="margin-top:28px">{{ $program->isForPublic() ? 'Data Instansi' : 'Data Pendidikan' }}</div>
 
-            <!-- PERUBAHAN: name="school_name" diganti menjadi name="nama_sekolah" atau name="instansi" -->
             @if($program->isForPublic())
                 <div class="field @error('instansi') has-error @enderror">
                     <label for="instansi">Nama Instansi <span class="req">*</span></label>
@@ -78,18 +76,17 @@
                 </div>
             @else
                 <div class="field @error('nama_sekolah') has-error @enderror">
-                    <label for="nama_sekolah">Nama Sekolah <span class="req">*</span></label>
-                    <input id="nama_sekolah" name="nama_sekolah" type="text" value="{{ old('nama_sekolah') }}" placeholder="Contoh: SMK Negeri 1 Cirebon" required>
+                    <label for="nama_sekolah">Asal Sekolah atau Perguruan Tinggi <span class="req">*</span></label>
+                    <input id="nama_sekolah" name="nama_sekolah" type="text" value="{{ old('nama_sekolah') }}" placeholder="Contoh: Universitas Catur Insan Cendekia" required>
                     @error('nama_sekolah')<div class="err">{{ $message }}</div>@enderror
                 </div>
             @endif
 
             @if($program->isForStudents())
             <div class="grid2">
-                <!-- PERUBAHAN: name="class_name" diganti name="kelas", dan placeholder lebih fleksibel -->
                 <div class="field @error('kelas') has-error @enderror">
-                    <label for="kelas">Kelas <span class="req">*</span></label>
-                    <input id="kelas" name="kelas" type="text" value="{{ old('kelas') }}" placeholder="Bebas (Contoh: XII, 12, atau 12 IPA 3)" required>
+                    <label for="kelas">Kelas/Prodi <span class="req">*</span></label>
+                    <input id="kelas" name="kelas" type="text" value="{{ old('kelas') }}" placeholder="Bebas (Contoh: XII, 12, atau Sistem Informasi)" required>
                     @error('kelas')<div class="err">{{ $message }}</div>@enderror
                 </div>
                 <div class="field @error('city') has-error @enderror">
