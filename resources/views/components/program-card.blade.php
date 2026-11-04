@@ -1,8 +1,10 @@
 @props(['program'])
-<article class="card" style="cursor:pointer"
+<article class="card" style="cursor:pointer; {{ $program->is_closed ? 'opacity: 0.8; filter: grayscale(100%); transition: 0.3s;' : '' }}"
          onclick="if(!event.target.closest('a,button')){window.location.href='{{ route('program.show', $program) }}'}">
     @if($program->poster)
-        <a href="{{ route('program.show', $program) }}" class="poster" style="display:block"><img src="{{ asset($program->poster) }}" alt="Poster {{ $program->title }}" loading="lazy"></a>
+        <a href="{{ route('program.show', $program) }}" class="poster" style="display:block">
+            <img src="{{ asset($program->poster) }}" alt="Poster {{ $program->title }}" loading="lazy">
+        </a>
     @endif
     <div class="card-body">
         <div class="card-top">
@@ -27,10 +29,16 @@
                 </div>
             @endforeach
         </div>
-        @if($program->isFull())
-            <button class="btn" disabled>Kuota Penuh</button>
+        
+        @if($program->is_closed)
+            <!-- Tombol jika kelas ditutup (Portofolio) -->
+            <button class="btn" disabled style="background-color: #dde3ec; color: #6c788a; border-color: #cdd5df; cursor: not-allowed; width: 100%;">Pendaftaran Ditutup</button>
+        @elseif($program->isFull())
+            <!-- Tombol jika kuota habis -->
+            <button class="btn" disabled style="width: 100%;">Kuota Penuh</button>
         @else
-            <a href="{{ route('registration.create', $program) }}" class="btn">Daftar Sekarang</a>
+            <!-- Tombol jika kelas aktif dan kuota masih ada -->
+            <a href="{{ route('registration.create', $program) }}" class="btn" style="display: block; text-align: center;">Daftar Sekarang</a>
         @endif
     </div>
 </article>
