@@ -31,18 +31,20 @@ class PageController extends Controller
 
         $input = trim($data['code']);
 
-        // 1. CEK PEMATERI & MODERATOR: Cek ke 4 kolom panitia sekaligus
+        // 1. CEK PEMATERI & MODERATOR (Sertakan 6 kolom pengajar)
         $programAsStaff = Program::where('instructor_phone', $input)
                                 ->orWhere('instructor_2_phone', $input)
                                 ->orWhere('instructor_3_phone', $input)
                                 ->orWhere('moderator_phone', $input)
+                                ->orWhere('moderator_2_phone', $input)
+                                ->orWhere('moderator_3_phone', $input)
                                 ->first();
                                 
         if ($programAsStaff) {
             return redirect('/sertifikat/' . $programAsStaff->certificate_prefix . '-' . $input);
         }
 
-        // 2. CEK PESERTA: Jika bukan pemateri, cari data pendaftar (peserta)
+        // 2. CEK PESERTA
         $registration = Registration::with('program')
             ->where('code', strtoupper($input))
             ->orWhere('phone', $input)

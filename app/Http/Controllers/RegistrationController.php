@@ -27,7 +27,6 @@ class RegistrationController extends Controller
             return back()->withInput()->withErrors(['email' => 'Maaf, kuota program ini sudah penuh.']);
         }
 
-        // 1. Validasi dasar
         $rules = [
             'name' => ['required', 'string', 'max:120'],
             'email' => [
@@ -42,7 +41,6 @@ class RegistrationController extends Controller
             'agree' => ['accepted'],
         ];
 
-        // 2. Validasi dinamis berdasarkan Target Peserta
         $target = $request->input('target_peserta');
         
         if ($target === 'Siswa SMA/SMK') {
@@ -116,7 +114,7 @@ class RegistrationController extends Controller
     {
         ['type' => $type, 'value' => $value] = $request->identifier();
 
-        // Cek apakah input adalah Nomor WA Pemateri atau Moderator
+        // Cek apakah input adalah Nomor WA Pemateri atau Moderator (sekarang mendukung masing-masing 3 orang)
         if ($type === 'phone') {
             $phoneVariants = Registration::phoneVariants($value);
             
@@ -124,16 +122,19 @@ class RegistrationController extends Controller
                                     ->orWhereIn('instructor_2_phone', $phoneVariants)
                                     ->orWhereIn('instructor_3_phone', $phoneVariants)
                                     ->orWhereIn('moderator_phone', $phoneVariants)
+                                    ->orWhereIn('moderator_2_phone', $phoneVariants)
+                                    ->orWhereIn('moderator_3_phone', $phoneVariants)
                                     ->first();
             
             if ($programAsStaff) {
-                // Temukan persis nomor mana yang match agar URL-nya tepat
                 $matchedPhone = null;
                 foreach ($phoneVariants as $variant) {
                     if ($programAsStaff->instructor_phone === $variant ||
                         $programAsStaff->instructor_2_phone === $variant ||
                         $programAsStaff->instructor_3_phone === $variant ||
-                        $programAsStaff->moderator_phone === $variant) {
+                        $programAsStaff->moderator_phone === $variant ||
+                        $programAsStaff->moderator_2_phone === $variant ||
+                        $programAsStaff->moderator_3_phone === $variant) {
                         $matchedPhone = $variant;
                         break;
                     }
@@ -145,7 +146,6 @@ class RegistrationController extends Controller
             }
         }
 
-        // Jika bukan pemateri, cari data peserta
         $query = Registration::with('program');
 
         match ($type) {

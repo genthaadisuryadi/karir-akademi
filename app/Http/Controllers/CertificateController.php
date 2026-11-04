@@ -13,11 +13,13 @@ class CertificateController extends Controller
 {
     public function show(Request $request, string $number)
     {
-        // 1. CEK APAKAH INI SERTIFIKAT PEMATERI ATAU MODERATOR
+        // 1. CEK APAKAH INI SERTIFIKAT PEMATERI ATAU MODERATOR (Semua Kolom)
         $programAsStaff = Program::whereRaw("CONCAT(certificate_prefix, '-', instructor_phone) = ?", [$number])
                                 ->orWhereRaw("CONCAT(certificate_prefix, '-', instructor_2_phone) = ?", [$number])
                                 ->orWhereRaw("CONCAT(certificate_prefix, '-', instructor_3_phone) = ?", [$number])
                                 ->orWhereRaw("CONCAT(certificate_prefix, '-', moderator_phone) = ?", [$number])
+                                ->orWhereRaw("CONCAT(certificate_prefix, '-', moderator_2_phone) = ?", [$number])
+                                ->orWhereRaw("CONCAT(certificate_prefix, '-', moderator_3_phone) = ?", [$number])
                                 ->first();
 
         if ($programAsStaff) {
@@ -34,15 +36,19 @@ class CertificateController extends Controller
                 $staffName = $programAsStaff->instructor_3;
             } elseif ($urlPrefix . $programAsStaff->moderator_phone === $number) {
                 $staffName = $programAsStaff->moderator;
-                $isModerator = true; // Tandai bahwa dia adalah moderator
+                $isModerator = true; 
+            } elseif ($urlPrefix . $programAsStaff->moderator_2_phone === $number) {
+                $staffName = $programAsStaff->moderator_2;
+                $isModerator = true; 
+            } elseif ($urlPrefix . $programAsStaff->moderator_3_phone === $number) {
+                $staffName = $programAsStaff->moderator_3;
+                $isModerator = true; 
             }
 
-            // Tentukan template Front (Moderator -> Pemateri -> Peserta)
             $frontTemplate = $isModerator 
                 ? ($programAsStaff->moderator_certificate_front ?: $programAsStaff->certificate_front) 
                 : ($programAsStaff->instructor_certificate_front ?: $programAsStaff->certificate_front);
 
-            // Tentukan template Back (Moderator -> Pemateri -> Peserta)
             $backTemplate = $isModerator 
                 ? ($programAsStaff->moderator_certificate_back ?: $programAsStaff->certificate_back) 
                 : ($programAsStaff->instructor_certificate_back ?: $programAsStaff->certificate_back);

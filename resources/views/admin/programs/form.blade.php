@@ -5,11 +5,13 @@
     $isActive = $hasOld ? (bool) old('is_active') : (bool) ($program->is_active ?? true);
     $isClosed = $hasOld ? (bool) old('is_closed') : (bool) ($program->is_closed ?? false);
 
-    // Cek apakah blok pengajar/moderator harus ditampilkan (saat ada data tersimpan atau error validasi)
     $showIns1 = old('instructor', $program->instructor) || old('instructor_phone', $program->instructor_phone) || $errors->has('instructor') || $errors->has('instructor_phone');
     $showIns2 = old('instructor_2', $program->instructor_2) || old('instructor_2_phone', $program->instructor_2_phone) || $errors->has('instructor_2') || $errors->has('instructor_2_phone');
     $showIns3 = old('instructor_3', $program->instructor_3) || old('instructor_3_phone', $program->instructor_3_phone) || $errors->has('instructor_3') || $errors->has('instructor_3_phone');
-    $showMod = old('moderator', $program->moderator) || old('moderator_phone', $program->moderator_phone) || $errors->has('moderator') || $errors->has('moderator_phone');
+    
+    $showMod1 = old('moderator', $program->moderator) || old('moderator_phone', $program->moderator_phone) || $errors->has('moderator') || $errors->has('moderator_phone');
+    $showMod2 = old('moderator_2', $program->moderator_2) || old('moderator_2_phone', $program->moderator_2_phone) || $errors->has('moderator_2') || $errors->has('moderator_2_phone');
+    $showMod3 = old('moderator_3', $program->moderator_3) || old('moderator_3_phone', $program->moderator_3_phone) || $errors->has('moderator_3') || $errors->has('moderator_3_phone');
 @endphp
 @section('title', $editing ? 'Edit Kelas' : 'Tambah Kelas')
 @section('heading', $editing ? 'Edit Kelas' : 'Tambah Kelas')
@@ -178,10 +180,10 @@
                 </div>
             </div>
 
-            <!-- Moderator -->
-            <div id="block-mod" class="f full" style="display: {{ $showMod ? 'block' : 'none' }}; background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; position: relative;">
-                <button type="button" onclick="removeMod()" style="position: absolute; right: 15px; top: 15px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 20px; line-height: 1; font-weight: bold;" title="Hapus Moderator">&times;</button>
-                <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Moderator</div>
+            <!-- Moderator 1 -->
+            <div id="block-mod-1" class="f full" style="display: {{ $showMod1 ? 'block' : 'none' }}; background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; position: relative;">
+                <button type="button" onclick="removeMod(1)" style="position: absolute; right: 15px; top: 15px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 20px; line-height: 1; font-weight: bold;" title="Hapus Moderator 1">&times;</button>
+                <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Moderator 1</div>
                 <div class="f @error('moderator') has-error @enderror" style="margin-bottom: 12px;">
                     <label for="moderator">Nama</label>
                     <input class="input" id="moderator" name="moderator" value="{{ old('moderator', $program->moderator) }}">
@@ -191,6 +193,38 @@
                     <label for="moderator_phone">No. WA (Untuk link Sertifikat)</label>
                     <input class="input" id="moderator_phone" type="tel" name="moderator_phone" value="{{ old('moderator_phone', $program->moderator_phone) }}">
                     @error('moderator_phone')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            <!-- Moderator 2 -->
+            <div id="block-mod-2" class="f full" style="display: {{ $showMod2 ? 'block' : 'none' }}; background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; position: relative;">
+                <button type="button" onclick="removeMod(2)" style="position: absolute; right: 15px; top: 15px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 20px; line-height: 1; font-weight: bold;" title="Hapus Moderator 2">&times;</button>
+                <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Moderator 2</div>
+                <div class="f @error('moderator_2') has-error @enderror" style="margin-bottom: 12px;">
+                    <label for="moderator_2">Nama</label>
+                    <input class="input" id="moderator_2" name="moderator_2" value="{{ old('moderator_2', $program->moderator_2) }}">
+                    @error('moderator_2')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
+                <div class="f @error('moderator_2_phone') has-error @enderror" style="margin:0;">
+                    <label for="moderator_2_phone">No. WA (Untuk link Sertifikat)</label>
+                    <input class="input" id="moderator_2_phone" type="tel" name="moderator_2_phone" value="{{ old('moderator_2_phone', $program->moderator_2_phone) }}">
+                    @error('moderator_2_phone')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            <!-- Moderator 3 -->
+            <div id="block-mod-3" class="f full" style="display: {{ $showMod3 ? 'block' : 'none' }}; background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; position: relative;">
+                <button type="button" onclick="removeMod(3)" style="position: absolute; right: 15px; top: 15px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 20px; line-height: 1; font-weight: bold;" title="Hapus Moderator 3">&times;</button>
+                <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Moderator 3</div>
+                <div class="f @error('moderator_3') has-error @enderror" style="margin-bottom: 12px;">
+                    <label for="moderator_3">Nama</label>
+                    <input class="input" id="moderator_3" name="moderator_3" value="{{ old('moderator_3', $program->moderator_3) }}">
+                    @error('moderator_3')<div class="ferr">{{ $message }}</div>@enderror
+                </div>
+                <div class="f @error('moderator_3_phone') has-error @enderror" style="margin:0;">
+                    <label for="moderator_3_phone">No. WA (Untuk link Sertifikat)</label>
+                    <input class="input" id="moderator_3_phone" type="tel" name="moderator_3_phone" value="{{ old('moderator_3_phone', $program->moderator_3_phone) }}">
+                    @error('moderator_3_phone')<div class="ferr">{{ $message }}</div>@enderror
                 </div>
             </div>
 
@@ -266,18 +300,19 @@
     </form>
 </div>
 
-<!-- SCRIPT UNTUK FORM DINAMIS PENGAJAR -->
+<!-- SCRIPT UNTUK FORM DINAMIS PENGAJAR & MODERATOR -->
 <script>
     function updateBtns() {
         const ins1 = document.getElementById('block-ins-1').style.display !== 'none';
         const ins2 = document.getElementById('block-ins-2').style.display !== 'none';
         const ins3 = document.getElementById('block-ins-3').style.display !== 'none';
-        const mod = document.getElementById('block-mod').style.display !== 'none';
         
-        // Sembunyikan tombol '+ Pemateri' jika ketiga form pemateri sudah terbuka
+        const mod1 = document.getElementById('block-mod-1').style.display !== 'none';
+        const mod2 = document.getElementById('block-mod-2').style.display !== 'none';
+        const mod3 = document.getElementById('block-mod-3').style.display !== 'none';
+        
         document.getElementById('btn-add-ins').style.display = (ins1 && ins2 && ins3) ? 'none' : 'inline-block';
-        // Sembunyikan tombol '+ Moderator' jika form moderator sudah terbuka
-        document.getElementById('btn-add-mod').style.display = mod ? 'none' : 'inline-block';
+        document.getElementById('btn-add-mod').style.display = (mod1 && mod2 && mod3) ? 'none' : 'inline-block';
     }
 
     function addIns() {
@@ -292,14 +327,19 @@
     }
 
     function addMod() {
-        document.getElementById('block-mod').style.display = 'block';
+        if (document.getElementById('block-mod-1').style.display === 'none') {
+            document.getElementById('block-mod-1').style.display = 'block';
+        } else if (document.getElementById('block-mod-2').style.display === 'none') {
+            document.getElementById('block-mod-2').style.display = 'block';
+        } else if (document.getElementById('block-mod-3').style.display === 'none') {
+            document.getElementById('block-mod-3').style.display = 'block';
+        }
         updateBtns();
     }
 
     function removeIns(num) {
         document.getElementById('block-ins-' + num).style.display = 'none';
         
-        // Kosongkan input agar tersimpan sebagai null di database
         if(num === 1) { 
             document.getElementById('instructor').value = ''; 
             document.getElementById('instructor_phone').value = ''; 
@@ -313,14 +353,22 @@
         updateBtns();
     }
 
-    function removeMod() {
-        document.getElementById('block-mod').style.display = 'none';
-        document.getElementById('moderator').value = '';
-        document.getElementById('moderator_phone').value = '';
+    function removeMod(num) {
+        document.getElementById('block-mod-' + num).style.display = 'none';
+        
+        if(num === 1) {
+            document.getElementById('moderator').value = '';
+            document.getElementById('moderator_phone').value = '';
+        } else if(num === 2) {
+            document.getElementById('moderator_2').value = '';
+            document.getElementById('moderator_2_phone').value = '';
+        } else if(num === 3) {
+            document.getElementById('moderator_3').value = '';
+            document.getElementById('moderator_3_phone').value = '';
+        }
         updateBtns();
     }
 
-    // Jalankan pengecekan tombol saat halaman pertama kali dimuat
     document.addEventListener("DOMContentLoaded", function() {
         updateBtns();
     });

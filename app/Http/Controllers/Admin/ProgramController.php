@@ -80,7 +80,6 @@ class ProgramController extends Controller
     public function toggleClose(int $id)
     {
         $program = Program::findOrFail($id);
-        // Jika ditutup, pastikan is_active bernilai 1 agar tetap tampil di portofolio web
         $program->update([
             'is_closed' => !$program->is_closed,
             'is_active' => 1
@@ -165,6 +164,10 @@ class ProgramController extends Controller
             'instructor_3_phone' => ['nullable', 'regex:/^(\+62|62|0)8[0-9]{7,13}$/'],
             'moderator' => ['nullable', 'string', 'max:255'],
             'moderator_phone' => ['nullable', 'regex:/^(\+62|62|0)8[0-9]{7,13}$/'],
+            'moderator_2' => ['nullable', 'string', 'max:255'],
+            'moderator_2_phone' => ['nullable', 'regex:/^(\+62|62|0)8[0-9]{7,13}$/'],
+            'moderator_3' => ['nullable', 'string', 'max:255'],
+            'moderator_3_phone' => ['nullable', 'regex:/^(\+62|62|0)8[0-9]{7,13}$/'],
 
             // Class details
             'price_label' => ['nullable', 'string', 'max:30'],
