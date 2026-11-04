@@ -4,6 +4,12 @@
     $hasOld = count(old()) > 0;
     $isActive = $hasOld ? (bool) old('is_active') : (bool) ($program->is_active ?? true);
     $isClosed = $hasOld ? (bool) old('is_closed') : (bool) ($program->is_closed ?? false);
+
+    // Cek apakah blok pengajar/moderator harus ditampilkan (saat ada data tersimpan atau error validasi)
+    $showIns1 = old('instructor', $program->instructor) || old('instructor_phone', $program->instructor_phone) || $errors->has('instructor') || $errors->has('instructor_phone');
+    $showIns2 = old('instructor_2', $program->instructor_2) || old('instructor_2_phone', $program->instructor_2_phone) || $errors->has('instructor_2') || $errors->has('instructor_2_phone');
+    $showIns3 = old('instructor_3', $program->instructor_3) || old('instructor_3_phone', $program->instructor_3_phone) || $errors->has('instructor_3') || $errors->has('instructor_3_phone');
+    $showMod = old('moderator', $program->moderator) || old('moderator_phone', $program->moderator_phone) || $errors->has('moderator') || $errors->has('moderator_phone');
 @endphp
 @section('title', $editing ? 'Edit Kelas' : 'Tambah Kelas')
 @section('heading', $editing ? 'Edit Kelas' : 'Tambah Kelas')
@@ -11,8 +17,7 @@
 <div class="card">
     @if($errors->any())<div class="alert err">Ada {{ $errors->count() }} isian yang perlu diperbaiki.</div>@endif
 
-    <form method="POST" enctype="multipart/form-data"
-          action="{{ $editing ? route('admin.kelas.update', $program->id) : route('admin.kelas.store') }}">
+    <form method="POST" enctype="multipart/form-data" action="{{ $editing ? route('admin.kelas.update', $program->id) : route('admin.kelas.store') }}">
         @csrf
         @if($editing) @method('PUT') @endif
 
@@ -44,19 +49,15 @@
                         <option value="{{ $value }}" @selected(old('audience', $program->audience ?? 'guru') === $value)>{{ $label }}</option>
                     @endforeach
                 </select>
-                <div class="hint">Siswa/Mahasiswa: meminta nama institusi dan prodi/kelas. Guru: nama sekolah. Umum: nama instansi.</div>
+                <div class="hint">Siswa/Mahasiswa: meminta institusi dan prodi/kelas. Guru: nama sekolah. Umum: nama instansi.</div>
                 @error('audience')<div class="ferr">{{ $message }}</div>@enderror
             </div>
 
-            @php
-                $prefixLocked = $editing && filled($program->certificate_prefix) && $program->registrations()->exists();
-            @endphp
+            @php $prefixLocked = $editing && filled($program->certificate_prefix) && $program->registrations()->exists(); @endphp
             <div class="f @error('certificate_prefix') has-error @enderror">
                 <label for="certificate_prefix">Prefix Sertifikat <span class="req">*</span></label>
                 <input class="input" id="certificate_prefix" name="certificate_prefix" value="{{ old('certificate_prefix', $program->certificate_prefix) }}" placeholder="bikin_ai_agent" pattern="[a-z0-9_]+" maxlength="60" autocapitalize="off" @readonly($prefixLocked) required>
-                <div class="hint">
-                    Harus unik antar kelas, tanpa spasi. Menjadi nomor sertifikat: <code>prefix-nomor_whatsapp</code>.
-                </div>
+                <div class="hint">Harus unik antar kelas, tanpa spasi. Menjadi nomor sertifikat: <code>prefix-nomor_whatsapp</code>.</div>
                 @error('certificate_prefix')<div class="ferr">{{ $message }}</div>@enderror
             </div>
 
@@ -105,24 +106,33 @@
             </div>
 
             <div class="f full @error('description') has-error @enderror">
-                <label for="description">Deskripsi Kelas <span class="muted small"></span></label>
-                <textarea class="input" id="description" name="description" rows="9" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px" placeholder="Contoh:&#10;Transformasi peran guru menjadi **inovator teknologi**.&#10;&#10;## Materi&#10;Dasar AI&#10;Praktik IoT">{{ old('description', $program->description) }}</textarea>
-                <div class="hint">Mendukung Markdown: <code>## Judul</code>, <code>**tebal**</code>, <code>*miring*</code>, daftar (<code>- item</code> / <code>1. item</code>), <code>[teks](https://...)</code>. Tag HTML dihapus otomatis. Tampil di bawah poster pada halaman detail kelas.</div>
+                <label for="description">Deskripsi Kelas</label>
+                <textarea class="input" id="description" name="description" rows="9" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px">{{ old('description', $program->description) }}</textarea>
+                <div class="hint">Mendukung Markdown. Tag HTML dihapus otomatis. Tampil di halaman detail kelas.</div>
                 @error('description')<div class="ferr">{{ $message }}</div>@enderror
             </div>
 
             <div class="f full @error('benefit') has-error @enderror">
-                <label for="benefit">Benefit <span class="muted small"> </span></label>
-                <textarea class="input" id="benefit" name="benefit" rows="5" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px" placeholder="- Sertifikat pelatihan 12 JP&#10;- Ebook untuk pengajaran di sekolah&#10;- Silabus untuk 1 tahun ajaran">{{ old('benefit', $program->benefit) }}</textarea>
-                <div class="hint">Satu benefit per baris diawali <code>- </code>. Tampil sebagai daftar centang di sisi kanan halaman detail kelas.</div>
+                <label for="benefit">Benefit</label>
+                <textarea class="input" id="benefit" name="benefit" rows="5" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px">{{ old('benefit', $program->benefit) }}</textarea>
+                <div class="hint">Satu benefit per baris diawali <code>- </code>.</div>
                 @error('benefit')<div class="ferr">{{ $message }}</div>@enderror
             </div>
 
-            <!-- BAGIAN PENGAJAR (VERTIKAL) -->
-            <div class="sec-title" style="margin-top: 25px; margin-bottom: 15px; font-weight: bold; font-size: 16px;">Susunan Pengajar / Panitia</div>
+            <!-- BAGIAN PENGAJAR DINAMIS -->
+            <div class="f full" style="margin-top: 15px; margin-bottom: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">
+                    <div style="font-weight: bold; font-size: 16px;">Susunan Pengajar / Panitia</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" id="btn-add-ins" class="btn sm ghost" style="background-color: transparent; border: 1px solid var(--primary); color: var(--primary);" onclick="addIns()">+ Pemateri</button>
+                        <button type="button" id="btn-add-mod" class="btn sm ghost" style="background-color: transparent; border: 1px solid var(--primary); color: var(--primary);" onclick="addMod()">+ Moderator</button>
+                    </div>
+                </div>
+            </div>
             
             <!-- Pemateri 1 -->
-            <div class="f full" style="background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;">
+            <div id="block-ins-1" class="f full" style="display: {{ $showIns1 ? 'block' : 'none' }}; background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; position: relative;">
+                <button type="button" onclick="removeIns(1)" style="position: absolute; right: 15px; top: 15px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 20px; line-height: 1; font-weight: bold;" title="Hapus Pemateri 1">&times;</button>
                 <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Pemateri 1</div>
                 <div class="f @error('instructor') has-error @enderror" style="margin-bottom: 12px;">
                     <label for="instructor">Nama</label>
@@ -130,14 +140,15 @@
                     @error('instructor')<div class="ferr">{{ $message }}</div>@enderror
                 </div>
                 <div class="f @error('instructor_phone') has-error @enderror" style="margin:0;">
-                    <label for="instructor_phone">No. WA</label>
+                    <label for="instructor_phone">No. WA (Untuk link Sertifikat)</label>
                     <input class="input" id="instructor_phone" type="tel" name="instructor_phone" value="{{ old('instructor_phone', $program->instructor_phone) }}">
                     @error('instructor_phone')<div class="ferr">{{ $message }}</div>@enderror
                 </div>
             </div>
 
             <!-- Pemateri 2 -->
-            <div class="f full" style="background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;">
+            <div id="block-ins-2" class="f full" style="display: {{ $showIns2 ? 'block' : 'none' }}; background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; position: relative;">
+                <button type="button" onclick="removeIns(2)" style="position: absolute; right: 15px; top: 15px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 20px; line-height: 1; font-weight: bold;" title="Hapus Pemateri 2">&times;</button>
                 <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Pemateri 2</div>
                 <div class="f @error('instructor_2') has-error @enderror" style="margin-bottom: 12px;">
                     <label for="instructor_2">Nama</label>
@@ -145,14 +156,15 @@
                     @error('instructor_2')<div class="ferr">{{ $message }}</div>@enderror
                 </div>
                 <div class="f @error('instructor_2_phone') has-error @enderror" style="margin:0;">
-                    <label for="instructor_2_phone">No. WA</label>
+                    <label for="instructor_2_phone">No. WA (Untuk link Sertifikat)</label>
                     <input class="input" id="instructor_2_phone" type="tel" name="instructor_2_phone" value="{{ old('instructor_2_phone', $program->instructor_2_phone) }}">
                     @error('instructor_2_phone')<div class="ferr">{{ $message }}</div>@enderror
                 </div>
             </div>
 
             <!-- Pemateri 3 -->
-            <div class="f full" style="background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;">
+            <div id="block-ins-3" class="f full" style="display: {{ $showIns3 ? 'block' : 'none' }}; background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; position: relative;">
+                <button type="button" onclick="removeIns(3)" style="position: absolute; right: 15px; top: 15px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 20px; line-height: 1; font-weight: bold;" title="Hapus Pemateri 3">&times;</button>
                 <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Pemateri 3</div>
                 <div class="f @error('instructor_3') has-error @enderror" style="margin-bottom: 12px;">
                     <label for="instructor_3">Nama</label>
@@ -160,14 +172,15 @@
                     @error('instructor_3')<div class="ferr">{{ $message }}</div>@enderror
                 </div>
                 <div class="f @error('instructor_3_phone') has-error @enderror" style="margin:0;">
-                    <label for="instructor_3_phone">No. WA</label>
+                    <label for="instructor_3_phone">No. WA (Untuk link Sertifikat)</label>
                     <input class="input" id="instructor_3_phone" type="tel" name="instructor_3_phone" value="{{ old('instructor_3_phone', $program->instructor_3_phone) }}">
                     @error('instructor_3_phone')<div class="ferr">{{ $message }}</div>@enderror
                 </div>
             </div>
 
             <!-- Moderator -->
-            <div class="f full" style="background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;">
+            <div id="block-mod" class="f full" style="display: {{ $showMod ? 'block' : 'none' }}; background: rgba(0,0,0,0.02); padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; position: relative;">
+                <button type="button" onclick="removeMod()" style="position: absolute; right: 15px; top: 15px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 20px; line-height: 1; font-weight: bold;" title="Hapus Moderator">&times;</button>
                 <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Moderator</div>
                 <div class="f @error('moderator') has-error @enderror" style="margin-bottom: 12px;">
                     <label for="moderator">Nama</label>
@@ -175,12 +188,11 @@
                     @error('moderator')<div class="ferr">{{ $message }}</div>@enderror
                 </div>
                 <div class="f @error('moderator_phone') has-error @enderror" style="margin:0;">
-                    <label for="moderator_phone">No. WA</label>
+                    <label for="moderator_phone">No. WA (Untuk link Sertifikat)</label>
                     <input class="input" id="moderator_phone" type="tel" name="moderator_phone" value="{{ old('moderator_phone', $program->moderator_phone) }}">
                     @error('moderator_phone')<div class="ferr">{{ $message }}</div>@enderror
                 </div>
             </div>
-
 
             <div class="f full @error('whatsapp_group_link') has-error @enderror" style="margin-top: 20px;">
                 <label for="whatsapp_group_link">Tautan Kelas / Grup</label>
@@ -204,16 +216,9 @@
                 <div class="f @error($field) has-error @enderror">
                     <label for="{{ $field }}">Template Sertifikat PESERTA {{ $side }} (PNG) @unless(filled($program->{$field}))<span class="req">*</span>@endunless</label>
                     <input class="input" id="{{ $field }}" type="file" name="{{ $field }}" accept="image/png" @required(! filled($program->{$field}))>
-                    <div class="hint">
-                        @if($field === 'certificate_front')
-                            PNG halaman depan. Nama, nomor, tanggal, dan QR Code ditempatkan otomatis.
-                        @else
-                            PNG halaman belakang statis (tanpa nama peserta).
-                        @endif
-                        Min. 1000 x 700 px, maks. 3600 x 2600 px, 8 MB.
-                    </div>
+                    <div class="hint">Min. 1000 x 700 px, maks. 3600 x 2600 px, 8 MB.</div>
                     @if(filled($program->{$field}))
-                        <div class="muted small">Template sudah diunggah. Pilih berkas baru hanya jika ingin menggantinya.</div>
+                        <div class="muted small">Template sudah diunggah.</div>
                     @endif
                     @error($field)<div class="ferr">{{ $message }}</div>@enderror
                 </div>
@@ -222,9 +227,9 @@
             <!-- SECTION: SERTIFIKAT PEMATERI -->
             @foreach(['instructor_certificate_front' => 'Depan', 'instructor_certificate_back' => 'Belakang'] as $field => $side)
                 <div class="f @error($field) has-error @enderror">
-                    <label for="{{ $field }}">Template Sertifikat PEMATERI {{ $side }} (PNG) <span class="muted small">(Opsional)</span></label>
+                    <label for="{{ $field }}">Template Sertifikat PEMATERI {{ $side }} (PNG)</label>
                     <input class="input" id="{{ $field }}" type="file" name="{{ $field }}" accept="image/png">
-                    <div class="hint">Khusus Pemateri. Kosongkan jika ingin memakai desain sertifikat peserta.</div>
+                    <div class="hint">Kosongkan jika ingin memakai desain sertifikat peserta.</div>
                     @if(filled($program->{$field}))
                         <div class="muted small">Template sudah diunggah.</div>
                     @endif
@@ -235,9 +240,9 @@
             <!-- SECTION: SERTIFIKAT MODERATOR -->
             @foreach(['moderator_certificate_front' => 'Depan', 'moderator_certificate_back' => 'Belakang'] as $field => $side)
                 <div class="f @error($field) has-error @enderror">
-                    <label for="{{ $field }}">Template Sertifikat MODERATOR {{ $side }} (PNG) <span class="muted small">(Opsional)</span></label>
+                    <label for="{{ $field }}">Template Sertifikat MODERATOR {{ $side }} (PNG)</label>
                     <input class="input" id="{{ $field }}" type="file" name="{{ $field }}" accept="image/png">
-                    <div class="hint">Khusus Moderator. Kosongkan jika ingin memakai desain sertifikat peserta.</div>
+                    <div class="hint">Kosongkan jika ingin memakai desain sertifikat peserta.</div>
                     @if(filled($program->{$field}))
                         <div class="muted small">Template sudah diunggah.</div>
                     @endif
@@ -250,7 +255,7 @@
             </div>
             
             <div class="f">
-                <label class="chk" style="color:#4f46e5; font-weight:600;"><input type="checkbox" name="is_closed" value="1" @checked($isClosed)> Tutup Pendaftaran (Berfungsi sebagai Portofolio; tampil di publik tapi tidak bisa diklik daftar)</label>
+                <label class="chk" style="color:#4f46e5; font-weight:600;"><input type="checkbox" name="is_closed" value="1" @checked($isClosed)> Tutup Pendaftaran (Berfungsi sebagai Portofolio)</label>
             </div>
         </div>
 
@@ -260,4 +265,64 @@
         </div>
     </form>
 </div>
+
+<!-- SCRIPT UNTUK FORM DINAMIS PENGAJAR -->
+<script>
+    function updateBtns() {
+        const ins1 = document.getElementById('block-ins-1').style.display !== 'none';
+        const ins2 = document.getElementById('block-ins-2').style.display !== 'none';
+        const ins3 = document.getElementById('block-ins-3').style.display !== 'none';
+        const mod = document.getElementById('block-mod').style.display !== 'none';
+        
+        // Sembunyikan tombol '+ Pemateri' jika ketiga form pemateri sudah terbuka
+        document.getElementById('btn-add-ins').style.display = (ins1 && ins2 && ins3) ? 'none' : 'inline-block';
+        // Sembunyikan tombol '+ Moderator' jika form moderator sudah terbuka
+        document.getElementById('btn-add-mod').style.display = mod ? 'none' : 'inline-block';
+    }
+
+    function addIns() {
+        if (document.getElementById('block-ins-1').style.display === 'none') {
+            document.getElementById('block-ins-1').style.display = 'block';
+        } else if (document.getElementById('block-ins-2').style.display === 'none') {
+            document.getElementById('block-ins-2').style.display = 'block';
+        } else if (document.getElementById('block-ins-3').style.display === 'none') {
+            document.getElementById('block-ins-3').style.display = 'block';
+        }
+        updateBtns();
+    }
+
+    function addMod() {
+        document.getElementById('block-mod').style.display = 'block';
+        updateBtns();
+    }
+
+    function removeIns(num) {
+        document.getElementById('block-ins-' + num).style.display = 'none';
+        
+        // Kosongkan input agar tersimpan sebagai null di database
+        if(num === 1) { 
+            document.getElementById('instructor').value = ''; 
+            document.getElementById('instructor_phone').value = ''; 
+        } else if(num === 2) { 
+            document.getElementById('instructor_2').value = ''; 
+            document.getElementById('instructor_2_phone').value = ''; 
+        } else if(num === 3) { 
+            document.getElementById('instructor_3').value = ''; 
+            document.getElementById('instructor_3_phone').value = ''; 
+        }
+        updateBtns();
+    }
+
+    function removeMod() {
+        document.getElementById('block-mod').style.display = 'none';
+        document.getElementById('moderator').value = '';
+        document.getElementById('moderator_phone').value = '';
+        updateBtns();
+    }
+
+    // Jalankan pengecekan tombol saat halaman pertama kali dimuat
+    document.addEventListener("DOMContentLoaded", function() {
+        updateBtns();
+    });
+</script>
 @endsection
