@@ -55,10 +55,9 @@
                 @error('audience')<div class="ferr">{{ $message }}</div>@enderror
             </div>
 
-            @php $prefixLocked = $editing && filled($program->certificate_prefix) && $program->registrations()->exists(); @endphp
             <div class="f @error('certificate_prefix') has-error @enderror">
                 <label for="certificate_prefix">Prefix Sertifikat <span class="req">*</span></label>
-                <input class="input" id="certificate_prefix" name="certificate_prefix" value="{{ old('certificate_prefix', $program->certificate_prefix) }}" placeholder="bikin_ai_agent" pattern="[a-z0-9_]+" maxlength="60" autocapitalize="off" @readonly($prefixLocked) required>
+                <input class="input" id="certificate_prefix" name="certificate_prefix" value="{{ old('certificate_prefix', $program->certificate_prefix) }}" placeholder="bikin_ai_agent" pattern="[a-z0-9_]+" maxlength="60" autocapitalize="off" required>
                 <div class="hint">Harus unik antar kelas, tanpa spasi. Menjadi nomor sertifikat: <code>prefix-nomor_whatsapp</code>.</div>
                 @error('certificate_prefix')<div class="ferr">{{ $message }}</div>@enderror
             </div>
