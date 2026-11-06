@@ -37,7 +37,6 @@ class RegistrationController extends Controller
             'city' => ['required', 'string', 'max:100'],
             'position' => ['nullable', 'string', 'max:120'],
             'motivation' => ['nullable', 'string', 'max:1000'],
-            'target_peserta' => ['required', Rule::in(['Siswa SMA/SMK', 'Guru', 'Umum'])],
             'agree' => ['accepted'],
         ];
 
