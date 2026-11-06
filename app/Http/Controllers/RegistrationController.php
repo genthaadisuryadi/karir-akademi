@@ -37,17 +37,18 @@ class RegistrationController extends Controller
             'city' => ['required', 'string', 'max:100'],
             'position' => ['nullable', 'string', 'max:120'],
             'motivation' => ['nullable', 'string', 'max:1000'],
+            'target_peserta' => ['required', 'string'],
             'agree' => ['accepted'],
         ];
 
-        $target = $request->input('target_peserta');
-        
-        if ($target === 'Siswa SMA/SMK') {
+        // Validasi opsional berdasarkan jenis audiens program (bukan input form)
+        // karena terkadang target_peserta di-bypass HTML
+        if ($program->audience === 'siswa') {
             $rules['nama_sekolah'] = ['required', 'string', 'max:150'];
             $rules['kelas'] = ['required', 'string', 'max:50'];
-        } elseif ($target === 'Guru') {
+        } elseif ($program->audience === 'guru') {
             $rules['nama_sekolah'] = ['required', 'string', 'max:150'];
-        } elseif ($target === 'Umum') {
+        } else {
             $rules['instansi'] = ['required', 'string', 'max:150'];
         }
 
@@ -57,15 +58,13 @@ class RegistrationController extends Controller
             'unique' => ':attribute ini sudah terdaftar pada program ini.',
             'phone.regex' => 'Nomor WhatsApp tidak valid (contoh: 081234567890).',
             'accepted' => 'Anda harus menyetujui pernyataan ini.',
-            'max' => ':attribute terlalu panjang.',
-            'target_peserta.in' => 'Pilihan target peserta tidak valid.'
+            'max' => ':attribute terlalu panjang.'
         ], [
             'name' => 'Nama lengkap',
             'email' => 'Email',
             'phone' => 'Nomor WhatsApp',
-            'target_peserta' => 'Target Peserta',
-            'nama_sekolah' => 'Nama sekolah',
-            'kelas' => 'Kelas',
+            'nama_sekolah' => 'Asal sekolah atau perguruan tinggi',
+            'kelas' => 'Kelas/Prodi',
             'instansi' => 'Nama instansi',
             'city' => 'Kota/Kabupaten',
             'position' => 'Mata pelajaran/jabatan',
@@ -74,9 +73,11 @@ class RegistrationController extends Controller
 
         unset($data['agree']);
 
-        $data['school_name'] = $data['nama_sekolah'] ?? $data['instansi'] ?? null;
-        $data['class_name'] = $data['kelas'] ?? null;
+        // MENGAMANKAN DATA SEKOLAH: Membaca dari semua kemungkinan nama field
+        $data['school_name'] = $request->input('nama_sekolah') ?: $request->input('instansi') ?: null;
+        $data['class_name'] = $request->input('kelas') ?: null;
 
+        // Buang key sementara agar tidak membuat error query database
         unset($data['nama_sekolah'], $data['instansi'], $data['kelas'], $data['target_peserta']);
 
         $data['phone'] = Registration::normalizePhone($data['phone']);
@@ -113,7 +114,7 @@ class RegistrationController extends Controller
     {
         ['type' => $type, 'value' => $value] = $request->identifier();
 
-        // Cek apakah input adalah Nomor WA Pemateri atau Moderator (sekarang mendukung masing-masing 3 orang)
+        // Cek apakah input adalah Nomor WA Pemateri atau Moderator
         if ($type === 'phone') {
             $phoneVariants = Registration::phoneVariants($value);
             
