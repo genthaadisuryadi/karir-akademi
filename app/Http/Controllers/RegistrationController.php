@@ -27,7 +27,7 @@ class RegistrationController extends Controller
             return back()->withInput()->withErrors(['email' => 'Maaf, kuota program ini sudah penuh.']);
         }
 
-        // 1. Validasi Dasar
+        // 1. Validasi Dasar (target_peserta dilonggarkan menjadi string biasa agar tidak bentrok)
         $rules = [
             'name' => ['required', 'string', 'max:120'],
             'email' => [
@@ -38,19 +38,19 @@ class RegistrationController extends Controller
             'city' => ['required', 'string', 'max:100'],
             'position' => ['nullable', 'string', 'max:120'],
             'motivation' => ['nullable', 'string', 'max:1000'],
-            'target_peserta' => ['required', Rule::in(['Siswa SMA/SMK', 'Guru', 'Umum'])],
+            'target_peserta' => ['required', 'string'], 
             'agree' => ['accepted'],
         ];
 
-        // 2. Validasi Dinamis Berdasarkan Target Peserta
-        $target = $request->input('target_peserta');
+        // 2. Deteksi Target Peserta yang Fleksibel
+        $target = strtolower($request->input('target_peserta'));
         
-        if ($target === 'Siswa SMA/SMK') {
+        if (str_contains($target, 'siswa') || str_contains($target, 'mahasiswa')) {
             $rules['nama_sekolah'] = ['required', 'string', 'max:150'];
             $rules['kelas'] = ['required', 'string', 'max:50'];
-        } elseif ($target === 'Guru') {
+        } elseif (str_contains($target, 'guru')) {
             $rules['nama_sekolah'] = ['required', 'string', 'max:150'];
-        } elseif ($target === 'Umum') {
+        } else {
             $rules['instansi'] = ['required', 'string', 'max:150'];
         }
 
@@ -59,33 +59,32 @@ class RegistrationController extends Controller
             'email' => 'Format email tidak valid.',
             'unique' => ':attribute ini sudah terdaftar pada program ini.',
             'phone.regex' => 'Nomor WhatsApp tidak valid (contoh: 081234567890).',
-            'accepted' => 'Anda harus menyetujui pernyataan ini.',
-            'max' => ':attribute terlalu panjang.',
-            'target_peserta.in' => 'Pilihan target peserta tidak valid.'
+            'accepted' => 'Anda harus menyetujui pernyataan ini di bagian bawah.',
+            'max' => ':attribute terlalu panjang.'
         ], [
             'name' => 'Nama lengkap',
             'email' => 'Email',
             'phone' => 'Nomor WhatsApp',
             'target_peserta' => 'Target Peserta',
-            'nama_sekolah' => 'Nama sekolah',
+            'nama_sekolah' => 'Asal sekolah atau perguruan tinggi',
             'kelas' => 'Kelas/Prodi',
             'instansi' => 'Nama instansi',
             'city' => 'Kota/Kabupaten',
             'position' => 'Mata pelajaran/jabatan',
             'motivation' => 'Motivasi',
+            'agree' => 'Pernyataan Persetujuan',
         ]);
 
+        // Buang data persetujuan karena tidak masuk database
         unset($data['agree']);
 
-        // 3. MAPPING DATA (INI YANG MEMPERBAIKI BUG KOLOM KOSONG)
-        // Kita terjemahkan 'nama_sekolah' atau 'instansi' dari form menjadi 'school_name' untuk database
-        $data['school_name'] = $data['nama_sekolah'] ?? $data['instansi'] ?? null;
-        $data['class_name'] = $data['kelas'] ?? null;
+        // 3. Mapping Data Sekolah yang Benar
+        $data['school_name'] = $request->input('nama_sekolah') ?: $request->input('instansi') ?: null;
+        $data['class_name'] = $request->input('kelas') ?: null;
 
-        // 4. Hapus field sementara agar tidak bentrok dengan kolom database
         unset($data['nama_sekolah'], $data['instansi'], $data['kelas'], $data['target_peserta']);
 
-        // 5. Normalisasi nomor dan simpan
+        // 4. Normalisasi dan Simpan
         $data['phone'] = Registration::normalizePhone($data['phone']);
 
         if (Registration::where('program_id', $program->id)->whereIn('phone', Registration::phoneVariants($data['phone']))->exists()) {
@@ -120,7 +119,6 @@ class RegistrationController extends Controller
     {
         ['type' => $type, 'value' => $value] = $request->identifier();
 
-        // Cek apakah input adalah Nomor WA Pemateri atau Moderator (Mendukung 3 Pemateri & 3 Moderator)
         if ($type === 'phone') {
             $phoneVariants = Registration::phoneVariants($value);
             
