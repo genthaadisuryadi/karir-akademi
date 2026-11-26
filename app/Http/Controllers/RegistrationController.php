@@ -6,6 +6,7 @@ use App\Http\Requests\SearchRegistrationRequest;
 use App\Models\Program;
 use App\Models\Registration;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -27,7 +28,7 @@ class RegistrationController extends Controller
             return back()->withInput()->withErrors(['email' => 'Maaf, kuota program ini sudah penuh.']);
         }
 
-        // 1. Validasi Dasar (target_peserta dilonggarkan menjadi string biasa agar tidak bentrok)
+        // 1. Validasi Dasar
         $rules = [
             'name' => ['required', 'string', 'max:120'],
             'email' => [
@@ -38,13 +39,13 @@ class RegistrationController extends Controller
             'city' => ['required', 'string', 'max:100'],
             'position' => ['nullable', 'string', 'max:120'],
             'motivation' => ['nullable', 'string', 'max:1000'],
-            'target_peserta' => ['required', 'string'], 
+            'target_peserta' => ['required', 'string'],
             'agree' => ['accepted'],
         ];
 
         // 2. Deteksi Target Peserta yang Fleksibel
         $target = strtolower($request->input('target_peserta'));
-        
+
         if (str_contains($target, 'siswa') || str_contains($target, 'mahasiswa')) {
             $rules['nama_sekolah'] = ['required', 'string', 'max:150'];
             $rules['kelas'] = ['required', 'string', 'max:50'];
@@ -60,7 +61,7 @@ class RegistrationController extends Controller
             'unique' => ':attribute ini sudah terdaftar pada program ini.',
             'phone.regex' => 'Nomor WhatsApp tidak valid (contoh: 081234567890).',
             'accepted' => 'Anda harus menyetujui pernyataan ini di bagian bawah.',
-            'max' => ':attribute terlalu panjang.'
+            'max' => ':attribute terlalu panjang.',
         ], [
             'name' => 'Nama lengkap',
             'email' => 'Email',
@@ -75,10 +76,9 @@ class RegistrationController extends Controller
             'agree' => 'Pernyataan Persetujuan',
         ]);
 
-        // Buang data persetujuan karena tidak masuk database
         unset($data['agree']);
 
-        // 3. Mapping Data Sekolah yang Benar
+        // 3. Mapping Data Sekolah
         $data['school_name'] = $request->input('nama_sekolah') ?: $request->input('instansi') ?: null;
         $data['class_name'] = $request->input('kelas') ?: null;
 
@@ -94,7 +94,7 @@ class RegistrationController extends Controller
         $registration = Registration::create($data + [
             'program_id' => $program->id,
             'code' => $this->generateCode(),
-            'status' => 'registered', 
+            'status' => 'registered',
             'certificate_number' => Registration::makeCertificateNumber($program, $data['phone']),
         ]);
 
@@ -119,37 +119,10 @@ class RegistrationController extends Controller
     {
         ['type' => $type, 'value' => $value] = $request->identifier();
 
-        if ($type === 'phone') {
-            $phoneVariants = Registration::phoneVariants($value);
-            
-            $programAsStaff = Program::whereIn('instructor_phone', $phoneVariants)
-                                    ->orWhereIn('instructor_2_phone', $phoneVariants)
-                                    ->orWhereIn('instructor_3_phone', $phoneVariants)
-                                    ->orWhereIn('moderator_phone', $phoneVariants)
-                                    ->orWhereIn('moderator_2_phone', $phoneVariants)
-                                    ->orWhereIn('moderator_3_phone', $phoneVariants)
-                                    ->first();
-            
-            if ($programAsStaff) {
-                $matchedPhone = null;
-                foreach ($phoneVariants as $variant) {
-                    if ($programAsStaff->instructor_phone === $variant ||
-                        $programAsStaff->instructor_2_phone === $variant ||
-                        $programAsStaff->instructor_3_phone === $variant ||
-                        $programAsStaff->moderator_phone === $variant ||
-                        $programAsStaff->moderator_2_phone === $variant ||
-                        $programAsStaff->moderator_3_phone === $variant) {
-                        $matchedPhone = $variant;
-                        break;
-                    }
-                }
-                
-                if ($matchedPhone) {
-                    return redirect('/sertifikat/' . $programAsStaff->certificate_prefix . '-' . $matchedPhone);
-                }
-            }
-        }
+        // 1. Cek semua riwayat Pemateri & Moderator jika input berupa nomor HP
+        $staffEntries = $type === 'phone' ? $this->findStaffEntries($value) : collect();
 
+        // 2. Cek semua riwayat pendaftaran Peserta
         $query = Registration::with('program');
 
         match ($type) {
@@ -160,18 +133,27 @@ class RegistrationController extends Controller
 
         $matches = $query->get();
 
-        if ($matches->isEmpty()) {
+        if ($matches->isEmpty() && $staffEntries->isEmpty()) {
             return back()
                 ->withInput($request->only('q'))
-                ->with('error', 'Data pendaftaran tidak ditemukan. Periksa kembali email, nomor HP, atau nomor registrasi Anda.');
+                ->with('error', 'Data pendaftaran atau riwayat pengajar tidak ditemukan. Periksa kembali email, nomor HP, atau nomor registrasi Anda.');
         }
 
-        Registration::rememberInSession($matches->pluck('id'));
+        $params = [];
+
+        if ($matches->isNotEmpty()) {
+            Registration::rememberInSession($matches->pluck('id'));
+            $params['ids'] = $matches->pluck('id')->implode(',');
+        }
+
+        if ($staffEntries->isNotEmpty()) {
+            $params['staff_phone'] = Registration::normalizePhone($value);
+        }
 
         return redirect(URL::temporarySignedRoute(
             'registration.my-class',
             now()->addMinutes(30),
-            ['ids' => $matches->pluck('id')->implode(',')]
+            $params
         ));
     }
 
@@ -187,11 +169,72 @@ class RegistrationController extends Controller
             ->map(fn ($id) => (int) $id)
             ->take(20);
 
-        $registrations = Registration::with('program')->whereIn('id', $ids)->latest()->get();
+        $registrations = $ids->isNotEmpty()
+            ? Registration::with('program')->whereIn('id', $ids)->latest()->get()
+            : collect();
 
-        abort_if($registrations->isEmpty(), 404);
+        $staffPhone = trim((string) $request->query('staff_phone'));
+        $staffEntries = $staffPhone !== ''
+            ? $this->findStaffEntries($staffPhone)
+            : collect();
 
-        return view('registration.my-class', compact('registrations'));
+        abort_if($registrations->isEmpty() && $staffEntries->isEmpty(), 404);
+
+        return view('registration.my-class', compact('registrations', 'staffEntries'));
+    }
+
+    private function findStaffEntries(string $phone): Collection
+    {
+        $phoneVariants = Registration::phoneVariants($phone);
+
+        $programs = Program::where(function ($query) use ($phoneVariants) {
+                $query->whereIn('instructor_phone', $phoneVariants)
+                    ->orWhereIn('instructor_2_phone', $phoneVariants)
+                    ->orWhereIn('instructor_3_phone', $phoneVariants)
+                    ->orWhereIn('moderator_phone', $phoneVariants)
+                    ->orWhereIn('moderator_2_phone', $phoneVariants)
+                    ->orWhereIn('moderator_3_phone', $phoneVariants);
+            })
+            ->orderByDesc('id')
+            ->get();
+
+        $entries = collect();
+
+        foreach ($programs as $program) {
+            $slots = [
+                ['role' => 'Pemateri',  'name' => $program->instructor,   'phone' => $program->instructor_phone],
+                ['role' => 'Pemateri',  'name' => $program->instructor_2, 'phone' => $program->instructor_2_phone],
+                ['role' => 'Pemateri',  'name' => $program->instructor_3, 'phone' => $program->instructor_3_phone],
+                ['role' => 'Moderator', 'name' => $program->moderator,    'phone' => $program->moderator_phone],
+                ['role' => 'Moderator', 'name' => $program->moderator_2,  'phone' => $program->moderator_2_phone],
+                ['role' => 'Moderator', 'name' => $program->moderator_3,  'phone' => $program->moderator_3_phone],
+            ];
+
+            foreach ($slots as $slot) {
+                if (filled($slot['phone']) && in_array($slot['phone'], $phoneVariants, true)) {
+                    $certNumber = $program->certificate_prefix . '-' . $slot['phone'];
+                    $hasTemplate = filled($program->certificate_prefix) && (
+                        filled($program->certificate_front)
+                        || ($slot['role'] === 'Pemateri' && filled($program->instructor_certificate_front))
+                        || ($slot['role'] === 'Moderator' && filled($program->moderator_certificate_front))
+                    );
+
+                    $entries->push((object) [
+                        'program' => $program,
+                        'role' => $slot['role'],
+                        'name' => $slot['name'] ?: $slot['role'],
+                        'phone' => $slot['phone'],
+                        'certificate_number' => $certNumber,
+                        'view_url' => url('/sertifikat/' . $certNumber),
+                        'download_url' => url('/sertifikat/' . $certNumber . '?unduh=1'),
+                        'has_template' => $hasTemplate,
+                    ]);
+                    break;
+                }
+            }
+        }
+
+        return $entries;
     }
 
     private function generateCode(): string
