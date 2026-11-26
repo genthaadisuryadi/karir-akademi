@@ -34,10 +34,10 @@
     .staff-count{display:inline-block;padding:5px 12px;border-radius:999px;background:#eef4ff;color:var(--primary);font-size:13px;font-weight:700}
 
     .staff-list{display:flex;flex-direction:column;gap:18px}
-    .staff-card{background:#fff;border:1px solid #e5ebf3;border-radius:16px;box-shadow:0 8px 24px rgba(15,23,42,.06);overflow:hidden;display:grid;grid-template-columns:190px 1fr}
-    .staff-poster{background:#f3f6fb;position:relative;min-height:210px}
-    .staff-poster img{width:100%;height:100%;object-fit:cover;display:block}
-    .staff-poster-empty{width:100%;height:100%;display:grid;place-items:center;padding:16px;text-align:center;color:var(--muted);font-size:13px;font-weight:600}
+    .staff-card{background:#fff;border:1px solid #e5ebf3;border-radius:16px;box-shadow:0 8px 24px rgba(15,23,42,.06);overflow:hidden;display:grid;grid-template-columns:230px 1fr;align-items:stretch}
+    .staff-poster{background:#f8fafc;border-right:1px solid #edf2f7;padding:14px;display:flex;align-items:center;justify-content:center}
+    .staff-poster img{width:100%;height:auto;max-width:100%;object-fit:contain;border-radius:10px;display:block;box-shadow:0 4px 12px rgba(15,23,42,.08)}
+    .staff-poster-empty{width:100%;min-height:200px;display:grid;place-items:center;padding:16px;text-align:center;color:var(--muted);font-size:13px;font-weight:600}
 
     .staff-info{padding:20px 22px;display:flex;flex-direction:column;justify-content:space-between;gap:14px}
     .staff-badges{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}
@@ -66,7 +66,8 @@
 
     @media(max-width:640px){
         .staff-card{grid-template-columns:1fr}
-        .staff-poster{max-height:280px}
+        .staff-poster{border-right:0;border-bottom:1px solid #edf2f7;padding:14px}
+        .staff-poster img{max-height:360px;width:auto;max-width:100%}
         .staff-meta{grid-template-columns:1fr}
         .cert-frame{padding:28px 16px 24px}
         .cert-name{font-size:23px;padding:0 10px 8px}

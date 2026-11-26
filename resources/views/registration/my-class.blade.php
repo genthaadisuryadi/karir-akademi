@@ -14,10 +14,10 @@
     .mc-sec-count{display:inline-block;padding:5px 12px;border-radius:999px;background:#eef4ff;color:var(--primary);font-size:13px;font-weight:700}
 
     .staff-grid{display:flex;flex-direction:column;gap:20px;margin-bottom:32px}
-    .staff-card{background:#fff;border:1px solid #e5ebf3;border-radius:16px;box-shadow:0 8px 24px rgba(15,23,42,.06);overflow:hidden;display:grid;grid-template-columns:230px 1fr}
-    .staff-poster{background:#f3f6fb;min-height:240px}
-    .staff-poster img{width:100%;height:100%;object-fit:cover;display:block}
-    .staff-poster-empty{width:100%;height:100%;display:grid;place-items:center;padding:20px;text-align:center;color:var(--muted);font-weight:600}
+    .staff-card{background:#fff;border:1px solid #e5ebf3;border-radius:16px;box-shadow:0 8px 24px rgba(15,23,42,.06);overflow:hidden;display:grid;grid-template-columns:280px 1fr;align-items:stretch}
+    .staff-poster{background:#f8fafc;border-right:1px solid #edf2f7;padding:16px;display:flex;align-items:center;justify-content:center}
+    .staff-poster img{width:100%;height:auto;max-width:100%;object-fit:contain;border-radius:10px;display:block;box-shadow:0 4px 14px rgba(15,23,42,.08)}
+    .staff-poster-empty{width:100%;min-height:240px;display:grid;place-items:center;padding:20px;text-align:center;color:var(--muted);font-weight:600}
 
     .staff-body{padding:24px 26px;display:flex;flex-direction:column;justify-content:space-between;gap:16px}
     .staff-badges{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
@@ -34,7 +34,8 @@
 
     @media(max-width:720px){
         .staff-card{grid-template-columns:1fr}
-        .staff-poster{max-height:320px}
+        .staff-poster{border-right:0;border-bottom:1px solid #edf2f7;padding:16px}
+        .staff-poster img{max-height:380px;width:auto;max-width:100%}
         .staff-body{padding:20px}
         .staff-actions .btn{flex:1;min-width:140px;text-align:center}
     }
